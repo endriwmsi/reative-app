@@ -8,8 +8,19 @@ export async function middleware(req: NextRequest) {
 
   const res = NextResponse.next();
 
+  const protectedRoutes = [
+    "/dashboard",
+    "/envios",
+    "/produtos",
+    "/configuracoes",
+  ];
+
   const isLoggedIn = !!sessionCookie;
-  const isOnProtectedRoute = nextUrl.pathname.startsWith("/(dashboard)/**");
+
+  const isOnProtectedRoute = protectedRoutes.some((route) =>
+    nextUrl.pathname.startsWith(route),
+  );
+
   const isOnAuthRoute =
     nextUrl.pathname.startsWith("/login") ||
     nextUrl.pathname.startsWith("/register");

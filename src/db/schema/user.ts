@@ -24,6 +24,9 @@ export const user = pgTable("user", {
   // Código do afiliado que indicou este usuário (opcional)
   referredBy: varchar("referred_by", { length: 4 }),
 
+  // Flag para usuários administradores
+  isAdmin: boolean("is_admin").notNull().default(false),
+
   street: text("street").notNull(),
   number: text("number").notNull(),
   complement: text("complement").default(""),

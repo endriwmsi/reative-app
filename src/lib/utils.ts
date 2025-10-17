@@ -121,10 +121,24 @@ export function cleanCNPJ(cnpj: string): string {
   return removeNonNumeric(cnpj);
 }
 
-/**
- * Gera um código de afiliado único de 4 dígitos numéricos
- * @returns string com 4 dígitos (ex: "1234")
- */
 export function generateReferralCode(): string {
   return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+export function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+export function formatCurrency(value: string | number) {
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(numValue);
 }
