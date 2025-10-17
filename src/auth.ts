@@ -73,6 +73,7 @@ export const auth = betterAuth({
       cep: { type: "string", required: true },
       referralCode: { type: "string", required: true },
       referredBy: { type: "string", required: false },
+      isAdmin: { type: "boolean", required: false },
     },
   },
 

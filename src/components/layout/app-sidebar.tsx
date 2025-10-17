@@ -5,6 +5,7 @@ import {
   IconHelp,
   IconPackage,
   IconSearch,
+  IconSend,
   IconSettings,
 } from "@tabler/icons-react";
 import Image from "next/image";
@@ -34,6 +35,11 @@ const data = {
       title: "Produtos",
       url: "/produtos",
       icon: IconPackage,
+    },
+    {
+      title: "Envios",
+      url: "/envios",
+      icon: IconSend,
     },
     // {
     //   title: "Gestão Financeira",
