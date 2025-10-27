@@ -107,6 +107,9 @@ export async function createSubmission(
 
     await db.insert(submissionClient).values(clientsToInsert);
 
+    // Nota: As comissões serão criadas automaticamente quando o pagamento for confirmado
+    // via payment.action.ts -> checkPaymentStatus()
+
     revalidatePath("/envios");
     return {
       success: true,

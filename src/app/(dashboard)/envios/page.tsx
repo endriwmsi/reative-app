@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
-import { Upload } from "lucide-react";
+import { Clock, TrendingUp, Upload, Wallet } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getAvailableBalance } from "@/actions/commission/commission-earnings.action";
 import {
   getProductsForUser,
   getUserProducts,
@@ -9,10 +10,12 @@ import {
 import { getUserSubmissions } from "@/actions/submission/submission.action";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/db/client";
 import { user } from "@/db/schema/user";
 import SubmissionsTable from "./_components/submissions-table";
 import "@/types/auth";
+import { formatCurrency } from "@/lib/utils";
 import { CreateSubmissionDialog } from "./_components/create-submission-dialog";
 
 type SubmissionData = {
@@ -58,13 +61,15 @@ export default async function EnviosPage() {
     .from(user)
     .where(eq(user.id, session.user.id));
 
-  // Buscar envios e produtos em paralelo
-  const [submissionsResult, productsResult] = await Promise.all([
+  // Buscar envios, produtos e saldo em paralelo
+  const [submissionsResult, productsResult, balanceResult] = await Promise.all([
     getUserSubmissions(session.user.id, isAdmin),
     // Se o usuário foi indicado, usar preços personalizados do indicador
     userData?.referredBy
       ? getProductsForUser(session.user.id)
       : getUserProducts(session.user.id),
+    // Buscar saldo disponível para comissões
+    getAvailableBalance(session.user.id),
   ]);
 
   if (!submissionsResult.success || !submissionsResult.data) {
@@ -117,6 +122,65 @@ export default async function EnviosPage() {
           </CreateSubmissionDialog>
         </div>
       </div>
+
+      {/* Saldo de Comissões */}
+      {balanceResult.success && balanceResult.data && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Saldo Disponível para Retirada
+              </CardTitle>
+              <Wallet className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(balanceResult.data.availableBalance)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Disponível para saque imediato
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Saldo Pendente
+              </CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {formatCurrency(balanceResult.data.pendingBalance)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Aguardando período de 7 dias
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total de Comissões
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {formatCurrency(
+                  balanceResult.data.availableBalance +
+                    balanceResult.data.pendingBalance,
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Valor total acumulado
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <SubmissionsTable
         submissions={submissionsResult.data as SubmissionData[]}

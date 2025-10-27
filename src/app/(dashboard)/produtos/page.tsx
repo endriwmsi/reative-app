@@ -63,7 +63,7 @@ export default async function ProductsPage() {
           </p>
         </div>
 
-        <ProductsView products={products} />
+        <ProductsView products={products} userId={session.user.id} />
       </div>
     );
   }

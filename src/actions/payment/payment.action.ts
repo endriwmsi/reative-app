@@ -8,6 +8,7 @@ import { db } from "@/db/client";
 import { submission } from "@/db/schema/submission";
 import { user } from "@/db/schema/user";
 import { AsaasAPI, type AsaasCustomer, asaas } from "@/lib/asaas";
+import { createCommissionEarnings } from "../commission/commission-earnings.action";
 
 export interface CreatePaymentData {
   submissionIds: string[];
@@ -163,19 +164,6 @@ export async function createPaymentForSubmissions(
       `submissions-${data.submissionIds.join("-")}`,
     );
 
-    console.log("=== Payment Response Debug ===");
-    console.log("Payment ID:", payment.id);
-    console.log("Payment Status:", payment.status);
-    console.log("PIX Transaction:", payment.pixTransaction);
-    console.log(
-      "Encoded Image:",
-      payment.pixTransaction?.encodedImage ? "Present" : "Missing",
-    );
-    console.log(
-      "Payload:",
-      payment.pixTransaction?.payload ? "Present" : "Missing",
-    );
-
     // Atualizar submissions com dados do pagamento
     await db
       .update(submission)
@@ -232,12 +220,10 @@ export async function refreshPaymentData(paymentId: string) {
       return { success: false, message: "Pagamento não encontrado" };
     }
 
-    // Buscar dados de cobrança para obter informações do PIX
     let pixData = { qrCode: "", pixCopyPaste: "" };
 
     try {
       const billingInfo = await asaasApi.getPaymentBillingInfo(paymentId);
-      console.log("Billing info from Asaas:", billingInfo);
 
       if (billingInfo.pix) {
         pixData = {
@@ -255,8 +241,6 @@ export async function refreshPaymentData(paymentId: string) {
         };
       }
     }
-
-    console.log("Final PIX data:", pixData);
 
     return {
       success: true,
@@ -287,17 +271,15 @@ export async function checkPaymentStatus(paymentId: string) {
       return { success: false, message: "Não autorizado" };
     }
 
-    console.log("=== Check Payment Status Debug ===");
-    console.log("Payment ID:", paymentId);
-
     const asaasApi = new AsaasAPI();
     const payment = await asaasApi.getPayment(paymentId);
-
-    console.log("Payment status from Asaas:", payment?.status);
 
     if (!payment) {
       return { success: false, message: "Pagamento não encontrado" };
     }
+
+    // Verificar se o pagamento foi confirmado e ainda não processou comissões
+    const shouldCreateCommissions = payment.status === "RECEIVED";
 
     // Atualizar status no banco de dados
     await db
@@ -310,6 +292,42 @@ export async function checkPaymentStatus(paymentId: string) {
         isPaid: payment.status === "RECEIVED",
       })
       .where(eq(submission.paymentId, paymentId));
+
+    // Criar comissões quando o pagamento for confirmado
+    if (shouldCreateCommissions) {
+      try {
+        // Buscar informações das submissões que foram pagas
+        const paidSubmissions = await db
+          .select({
+            id: submission.id,
+            userId: submission.userId,
+            productId: submission.productId,
+            unitPrice: submission.unitPrice,
+            quantity: submission.quantity,
+            totalAmount: submission.totalAmount,
+          })
+          .from(submission)
+          .where(eq(submission.paymentId, paymentId));
+
+        for (const submissionData of paidSubmissions) {
+          await createCommissionEarnings({
+            submissionId: submissionData.id,
+            buyerUserId: submissionData.userId,
+            productId: submissionData.productId,
+            unitPrice: submissionData.unitPrice,
+            quantity: submissionData.quantity,
+            totalAmount: submissionData.totalAmount,
+          });
+        }
+
+        console.log(
+          `Comissões criadas para ${paidSubmissions.length} submissões pagas`,
+        );
+      } catch (commissionError) {
+        console.error("Erro ao criar comissões:", commissionError);
+        // Não interrompe o fluxo se as comissões falharem
+      }
+    }
 
     revalidatePath("/envios");
 
