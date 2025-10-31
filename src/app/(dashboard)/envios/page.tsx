@@ -16,8 +16,8 @@ import { user } from "@/db/schema/user";
 import SubmissionsTable from "./_components/submissions-table";
 import "@/types/auth";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
-import { CreateSubmissionDialog } from "./_components/create-submission-dialog";
 
 type SubmissionData = {
   id: string;
@@ -116,17 +116,12 @@ export default async function EnviosPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <CreateSubmissionDialog
-            products={productsResult.data}
-            userId={session.user.id}
-          >
-            <Button className="gap-2">
-              <Upload className="h-4 w-4" />
-              Novo envio
-            </Button>
-          </CreateSubmissionDialog>
-        </div>
+        <Button className="gap-2" asChild>
+          <Link href="/envios/novo-envio">
+            <Upload className="h-4 w-4" />
+            Novo envio
+          </Link>
+        </Button>
       </div>
 
       {/* Saldo de Comissões */}

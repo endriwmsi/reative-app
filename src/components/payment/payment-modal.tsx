@@ -263,7 +263,7 @@ export function PaymentModal({
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <div className="flex-1 p-2 bg-gray-50 rounded border text-xs font-mono break-all min-h-[2.5rem] flex items-center">
+                <div className="flex-1 p-2 bg-secondary rounded border text-xs font-mono break-all min-h-[2.5rem] flex items-center">
                   {currentPaymentData.pixCopyPaste ? (
                     currentPaymentData.pixCopyPaste
                   ) : (

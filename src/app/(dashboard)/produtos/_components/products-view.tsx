@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Pencil, ShoppingCart, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { setMyResalePrice } from "@/actions/product/product.action";
@@ -245,9 +246,11 @@ export default function ProductsView({ products, userId }: ProductsViewProps) {
               </div>
 
               <div className="mt-4 pt-4 border-t">
-                <Button className="w-full" variant="default">
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Solicitar Serviço
+                <Button className="w-full" variant="default" asChild>
+                  <Link href="/envios/novo-envio">
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Solicitar Serviço
+                  </Link>
                 </Button>
               </div>
             </CardContent>

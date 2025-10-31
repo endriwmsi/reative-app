@@ -50,11 +50,13 @@ interface CreateExcelUploadFormProps {
   products: Product[];
   userId: string;
   trigger?: React.ReactNode;
+  onSuccess?: () => void;
 }
 
 export default function CreateExcelUploadForm({
   products,
   userId,
+  onSuccess,
 }: CreateExcelUploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [couponValidation, setCouponValidation] = useState<{
@@ -173,9 +175,14 @@ export default function CreateExcelUploadForm({
 
       if (submissionResult.success) {
         toast.success(submissionResult.message);
-        router.refresh();
         form.reset();
         setSelectedFile(null);
+
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/envios");
+        }
       } else {
         toast.error(submissionResult.error);
       }
