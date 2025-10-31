@@ -1,5 +1,3 @@
-"use client";
-
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -7,7 +5,6 @@ import {
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -24,13 +21,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { getUserInitials } from "@/lib/utils";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
-  const { data: session, isPending } = authClient.useSession();
+
+  const { data: session } = useSession();
 
   return (
     <SidebarMenu>
@@ -53,21 +50,12 @@ export function NavUser() {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                {isPending ? (
-                  <>
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-3 w-32 mt-1" />
-                  </>
-                ) : (
-                  <>
-                    <span className="truncate font-medium">
-                      {session?.user.name || "SN"}
-                    </span>
-                    <span className="text-muted-foreground truncate text-xs">
-                      {session?.user.email}
-                    </span>
-                  </>
-                )}
+                <span className="truncate font-medium">
+                  {session?.user.name || "SN"}
+                </span>
+                <span className="text-muted-foreground truncate text-xs">
+                  {session?.user.email}
+                </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -92,21 +80,12 @@ export function NavUser() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  {isPending ? (
-                    <>
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-32 mt-1" />
-                    </>
-                  ) : (
-                    <>
-                      <span className="truncate font-medium">
-                        {session?.user.name || "SN"}
-                      </span>
-                      <span className="text-muted-foreground truncate text-xs">
-                        {session?.user.email}
-                      </span>
-                    </>
-                  )}
+                  <span className="truncate font-medium">
+                    {session?.user.name || "SN"}
+                  </span>
+                  <span className="text-muted-foreground truncate text-xs">
+                    {session?.user.email}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
