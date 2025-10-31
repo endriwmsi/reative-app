@@ -3,9 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { validateCoupon } from "@/actions/coupon/coupon.action";
 import {
   createSubmission,
   processExcelFile,
@@ -56,6 +57,19 @@ export default function CreateExcelUploadForm({
   userId,
 }: CreateExcelUploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [couponValidation, setCouponValidation] = useState<{
+    isValidating: boolean;
+    isValid: boolean;
+    couponId: string | null;
+    discountedPrice: number | null;
+    message: string;
+  }>({
+    isValidating: false,
+    isValid: false,
+    couponId: null,
+    discountedPrice: null,
+    message: "",
+  });
   const router = useRouter();
 
   const form = useForm<ExcelUploadFormData>({
@@ -63,11 +77,75 @@ export default function CreateExcelUploadForm({
     defaultValues: {
       title: "",
       productId: "",
+      couponCode: "",
       notes: "",
     },
   });
 
   const { isSubmitting } = form.formState;
+
+  // Validação de cupom com debounce
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "couponCode" || name === "productId") {
+        const couponCode = value.couponCode;
+        const productId = value.productId;
+
+        if (!couponCode || !productId) {
+          setCouponValidation({
+            isValidating: false,
+            isValid: false,
+            couponId: null,
+            discountedPrice: null,
+            message: "",
+          });
+          return;
+        }
+
+        const timeoutId = setTimeout(async () => {
+          setCouponValidation((prev) => ({ ...prev, isValidating: true }));
+
+          try {
+            const result = await validateCoupon({
+              code: couponCode,
+              productId: parseInt(productId),
+              userId,
+            });
+
+            if (result.success && result.data) {
+              setCouponValidation({
+                isValidating: false,
+                isValid: true,
+                couponId: result.data.id,
+                discountedPrice: parseFloat(result.data.finalPrice),
+                message: `Cupom válido! Preço unitário com desconto: R$ ${parseFloat(result.data.finalPrice).toFixed(2)} por nome`,
+              });
+            } else {
+              setCouponValidation({
+                isValidating: false,
+                isValid: false,
+                couponId: null,
+                discountedPrice: null,
+                message: result.error || "Cupom inválido",
+              });
+            }
+          } catch {
+            setCouponValidation({
+              isValidating: false,
+              isValid: false,
+              couponId: null,
+              discountedPrice: null,
+              message: "Erro ao validar cupom",
+            });
+          }
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, userId]);
 
   const onSubmit = async (data: ExcelUploadFormData) => {
     if (!selectedFile) {
@@ -90,6 +168,7 @@ export default function CreateExcelUploadForm({
         productId: parseInt(data.productId),
         clients: result.data,
         notes: data.notes || "",
+        couponId: couponValidation.couponId || "",
       });
 
       if (submissionResult.success) {
@@ -147,6 +226,37 @@ export default function CreateExcelUploadForm({
               <FormControl>
                 <Input placeholder="Ex: Protocolo Janeiro 2024" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="couponCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cupom de Desconto</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Digite o código do cupom (opcional)"
+                  {...field}
+                />
+              </FormControl>
+              {couponValidation.isValidating && (
+                <p className="text-sm text-muted-foreground">
+                  Validando cupom...
+                </p>
+              )}
+              {couponValidation.message && (
+                <p
+                  className={`text-sm ${
+                    couponValidation.isValid ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {couponValidation.message}
+                </p>
+              )}
               <FormMessage />
             </FormItem>
           )}

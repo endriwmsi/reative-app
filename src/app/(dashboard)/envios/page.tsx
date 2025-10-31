@@ -15,6 +15,7 @@ import { db } from "@/db/client";
 import { user } from "@/db/schema/user";
 import SubmissionsTable from "./_components/submissions-table";
 import "@/types/auth";
+import type { Metadata } from "next";
 import { formatCurrency } from "@/lib/utils";
 import { CreateSubmissionDialog } from "./_components/create-submission-dialog";
 
@@ -39,12 +40,17 @@ type SubmissionData = {
   paymentStatus?: string | null;
 };
 
+export const metadata: Metadata = {
+  title: "Meus Envios",
+  description: "Gerencie seus envios de forma fácil e rápida.",
+};
+
 export default async function EnviosPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     redirect("/login");
   }
 

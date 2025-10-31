@@ -1,10 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
+import { validateCoupon } from "@/actions/coupon/coupon.action";
 import { createSubmission } from "@/actions/submission/submission.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,17 @@ export default function CreateSingleClientForm({
   onSuccess,
 }: CreateSingleClientFormProps) {
   const [loading, setLoading] = useState(false);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [validatedCoupon, setValidatedCoupon] = useState<{
+    id: string;
+    code: string;
+    finalPrice: string;
+    discountType: string;
+    discountValue: string;
+    productName: string;
+    originalPrice: string;
+    discount: string;
+  } | null>(null);
 
   const form = useForm<z.infer<typeof singleClientSchema>>({
     resolver: zodResolver(singleClientSchema),
@@ -57,6 +69,7 @@ export default function CreateSingleClientForm({
       productId: "",
       name: "",
       document: "",
+      couponCode: "",
       notes: "",
     },
   });
@@ -75,6 +88,7 @@ export default function CreateSingleClientForm({
         productId: parseInt(values.productId),
         clients: [clientData],
         notes: values.notes || undefined,
+        couponId: validatedCoupon?.id, // Passar o ID do cupom validado
       });
 
       if (result.success) {
@@ -92,11 +106,58 @@ export default function CreateSingleClientForm({
   };
 
   const watchedProductId = form.watch("productId");
+  const watchedCouponCode = form.watch("couponCode");
+
   const selectedProduct = products.find(
     (p) => p.id === parseInt(watchedProductId),
   );
-  const productPrice =
-    selectedProduct?.customPrice || selectedProduct?.basePrice || "0";
+
+  // Preço final considerando cupom válido
+  const finalPrice = validatedCoupon
+    ? validatedCoupon.finalPrice
+    : selectedProduct?.customPrice || selectedProduct?.basePrice || "0";
+
+  // Validar cupom quando código ou produto mudar
+  React.useEffect(() => {
+    const handleValidateCoupon = async (couponCode: string) => {
+      if (!couponCode || !selectedProduct) {
+        setValidatedCoupon(null);
+        return;
+      }
+
+      setValidatingCoupon(true);
+      try {
+        const result = await validateCoupon({
+          code: couponCode,
+          productId: selectedProduct.id,
+          userId,
+        });
+
+        if (result.success && result.data) {
+          setValidatedCoupon(result.data);
+          toast.success(result.message);
+        } else {
+          setValidatedCoupon(null);
+          toast.error(result.error);
+        }
+      } catch {
+        setValidatedCoupon(null);
+        toast.error("Erro ao validar cupom");
+      } finally {
+        setValidatingCoupon(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      if (watchedCouponCode && selectedProduct) {
+        handleValidateCoupon(watchedCouponCode);
+      } else {
+        setValidatedCoupon(null);
+      }
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [watchedCouponCode, selectedProduct, userId]);
 
   return (
     <Form {...form}>
@@ -157,13 +218,57 @@ export default function CreateSingleClientForm({
             {selectedProduct && (
               <div className="mt-2 p-2 bg-muted rounded text-sm">
                 <p>
-                  <strong>Valor:</strong> R$ {productPrice}
+                  <strong>Valor por cliente:</strong> R$ {finalPrice}
+                  {validatedCoupon && (
+                    <span className="ml-2 text-green-600">
+                      (com desconto: R$ {validatedCoupon.originalPrice} → R${" "}
+                      {validatedCoupon.finalPrice} por cliente)
+                    </span>
+                  )}
                 </p>
                 <p className="text-muted-foreground">
                   {selectedProduct.description}
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Campo do Cupom */}
+          <div className="col-span-2">
+            <FormField
+              control={form.control}
+              name="couponCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cupom de Desconto (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Digite o código do cupom"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.value.toUpperCase());
+                      }}
+                    />
+                  </FormControl>
+                  {validatingCoupon && (
+                    <p className="text-sm text-muted-foreground">
+                      Validando cupom...
+                    </p>
+                  )}
+                  {validatedCoupon && (
+                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                      <p className="text-green-600 font-medium">
+                        ✅ Cupom "{validatedCoupon.code}" aplicado!
+                      </p>
+                      <p className="text-green-700">
+                        Desconto: R$ {validatedCoupon.discount}
+                      </p>
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
 

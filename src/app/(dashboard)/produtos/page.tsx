@@ -93,7 +93,8 @@ export default async function ProductsPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Produtos e Serviços</h1>
         <p className="text-muted-foreground">
-          Gerencie os preços dos produtos que você oferece aos seus indicados.
+          Gerencie os preços dos produtos que você oferece aos seus indicados e
+          crie cupons de desconto.
         </p>
       </div>
 

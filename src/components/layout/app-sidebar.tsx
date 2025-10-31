@@ -7,6 +7,7 @@ import {
   IconSearch,
   IconSend,
   IconSettings,
+  IconTicket,
 } from "@tabler/icons-react";
 import Image from "next/image";
 import type * as React from "react";
@@ -40,6 +41,11 @@ const data = {
       title: "Envios",
       url: "/envios",
       icon: IconSend,
+    },
+    {
+      title: "Cupons",
+      url: "/cupons",
+      icon: IconTicket,
     },
     // {
     //   title: "Gestão Financeira",

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import * as XLSX from "xlsx";
 import { db } from "@/db/client";
 import {
+  coupon,
   product,
   submission,
   submissionClient,
@@ -22,6 +23,7 @@ interface SubmissionData {
   productId: number;
   clients: ClientData[];
   notes?: string;
+  couponId?: string;
 }
 
 export async function createSubmission(
@@ -79,8 +81,48 @@ export async function createSubmission(
         ),
       );
 
-    const unitPrice = userPrice?.customPrice || productData.basePrice;
+    let unitPrice = userPrice?.customPrice || productData.basePrice;
     const quantity = submissionData.clients.length;
+
+    // Aplicar cupom se fornecido
+    let couponId: string | null = null;
+    if (submissionData.couponId) {
+      const [couponData] = await db
+        .select()
+        .from(coupon)
+        .where(
+          and(
+            eq(coupon.id, submissionData.couponId),
+            eq(coupon.isActive, true),
+          ),
+        );
+
+      if (couponData) {
+        const originalPrice = parseFloat(unitPrice);
+        let discountedPrice = originalPrice;
+
+        if (couponData.discountType === "percentage") {
+          discountedPrice =
+            originalPrice *
+            (1 - parseFloat(couponData.discountValue.toString()) / 100);
+        } else {
+          discountedPrice =
+            originalPrice - parseFloat(couponData.discountValue.toString());
+        }
+
+        // Garantir que o preço não seja negativo
+        discountedPrice = Math.max(0, discountedPrice);
+        unitPrice = discountedPrice.toFixed(2);
+        couponId = couponData.id;
+
+        // Incrementar contador de uso do cupom
+        await db
+          .update(coupon)
+          .set({ currentUses: couponData.currentUses + 1 })
+          .where(eq(coupon.id, couponData.id));
+      }
+    }
+
     const totalAmount = (parseFloat(unitPrice) * quantity).toString();
 
     // Criar o envio
@@ -95,6 +137,7 @@ export async function createSubmission(
         unitPrice,
         quantity,
         notes: submissionData.notes,
+        couponId,
       })
       .returning();
 

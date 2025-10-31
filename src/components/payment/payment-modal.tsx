@@ -2,6 +2,7 @@
 
 import {
   Check,
+  CheckCircle,
   Copy,
   CreditCard,
   Loader2,
@@ -11,10 +12,7 @@ import {
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  checkPaymentStatus,
-  refreshPaymentData,
-} from "@/actions/payment/payment.action";
+import { refreshPaymentData } from "@/actions/payment/payment.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { usePaymentStatus } from "@/hooks/use-payment-status";
 
 interface PaymentModalProps {
   open: boolean;
@@ -54,7 +53,43 @@ export function PaymentModal({
   useEffect(() => {
     setCurrentPaymentData(paymentData);
   }, [paymentData]);
-  const [checkingPayment, setCheckingPayment] = useState(false);
+
+  // Hook para verificação automática de status
+  const {
+    isPaid,
+    isChecking: checkingPayment,
+    manualCheck,
+    stopChecking,
+  } = usePaymentStatus({
+    paymentId: paymentData.paymentId,
+    enabled: open, // Só verifica quando o modal está aberto
+    onPaymentConfirmed: () => {
+      stopChecking();
+
+      // Mostrar toast de sucesso personalizado
+      toast.success("🎉 Pagamento Confirmado!", {
+        description:
+          "Seus envios foram processados com sucesso. O modal será fechado automaticamente.",
+        duration: 5000,
+      });
+
+      // Fechar modal automaticamente após 2 segundos
+      setTimeout(() => {
+        onPaymentSuccess?.();
+        onOpenChange(false);
+      }, 2000);
+    },
+    onStatusUpdate: (status, paid) => {
+      console.log(`Payment status updated: ${status}, isPaid: ${paid}`);
+    },
+  });
+
+  // Cleanup quando o modal for fechado
+  useEffect(() => {
+    if (!open) {
+      stopChecking();
+    }
+  }, [open, stopChecking]);
 
   // Debug: Log dos dados recebidos
   console.log("=== Payment Modal Data Debug ===");
@@ -98,26 +133,12 @@ export function PaymentModal({
   };
 
   const handleCheckPayment = async () => {
-    setCheckingPayment(true);
-    try {
-      const result = await checkPaymentStatus(currentPaymentData.paymentId);
-
-      if (result.success) {
-        toast.success("Status do pagamento atualizado!");
-        onPaymentSuccess?.();
-      } else {
-        toast.error(result.message);
-      }
-    } catch {
-      toast.error("Erro ao verificar pagamento");
-    } finally {
-      setCheckingPayment(false);
-    }
+    await manualCheck();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
@@ -128,94 +149,121 @@ export function PaymentModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Resumo do Pagamento */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Resumo do Pagamento</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Valor Total:</span>
-                <span className="text-2xl font-bold text-green-600">
-                  R${" "}
-                  {currentPaymentData.totalAmount.toFixed(2).replace(".", ",")}
-                </span>
+        <div className="space-y-3">
+          {/* Status do Pagamento - Simplificado */}
+          {isPaid && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-green-700">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">Pagamento Confirmado!</span>
               </div>
+              <p className="text-sm text-green-600 mt-1">
+                Seus envios foram processados com sucesso.
+              </p>
+            </div>
+          )}
 
-              <Separator />
-
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Envios inclusos:
-                </span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {currentPaymentData.submissionTitles.map((title) => (
-                    <Badge key={title} variant="secondary" className="text-xs">
-                      {title}
-                    </Badge>
-                  ))}
+          {/* Layout Horizontal - Informações + QR Code */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Resumo do Pagamento */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Resumo do Pagamento</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Valor Total:</span>
+                  <span className="text-xl font-bold text-green-600">
+                    R${" "}
+                    {currentPaymentData.totalAmount
+                      .toFixed(2)
+                      .replace(".", ",")}
+                  </span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* QR Code */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="bg-white p-4 rounded-lg border">
-              {currentPaymentData.qrCode ? (
-                <Image
-                  className="w-48 h-48 bg-contain bg-no-repeat bg-center"
-                  src={`data:image/png;base64,${currentPaymentData.qrCode}`}
-                  alt="QR Code PIX"
-                  width={192}
-                  height={192}
-                />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-gray-100 rounded">
-                  <div className="text-center">
-                    <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-3">
-                      {currentPaymentData.qrCode === ""
-                        ? "QR Code não disponível"
-                        : "Carregando QR Code..."}
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleRefreshPaymentData}
-                      disabled={isRefreshing}
-                      className="text-xs"
-                    >
-                      {isRefreshing ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                      ) : (
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                      )}
-                      Tentar novamente
-                    </Button>
+                <Separator />
+
+                <div>
+                  <span className="text-sm text-muted-foreground">
+                    Envios inclusos:
+                  </span>
+                  <div className="flex flex-wrap gap-1 mt-1 max-h-20 overflow-y-auto">
+                    {currentPaymentData.submissionTitles.map((title) => (
+                      <Badge
+                        key={title}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {title}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
 
-            <p className="text-sm text-muted-foreground text-center">
-              {currentPaymentData.qrCode
-                ? "Escaneie o QR Code com o app do seu banco"
-                : "QR Code será gerado em alguns segundos"}
-            </p>
+            {/* QR Code */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <QrCode className="h-4 w-4" />
+                  QR Code PIX
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center">
+                <div className="w-36 h-36 flex items-center justify-center border rounded-lg bg-white">
+                  {currentPaymentData.qrCode ? (
+                    <Image
+                      src={`data:image/png;base64,${currentPaymentData.qrCode}`}
+                      alt="QR Code PIX"
+                      width={130}
+                      height={130}
+                      className="rounded"
+                    />
+                  ) : (
+                    <div className="text-center p-2">
+                      <p className="text-xs text-gray-500 mb-2">
+                        {currentPaymentData.qrCode === ""
+                          ? "QR Code não disponível"
+                          : "Carregando..."}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleRefreshPaymentData}
+                        disabled={isRefreshing}
+                        className="text-xs"
+                      >
+                        {isRefreshing ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : (
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                        )}
+                        Tentar novamente
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  {currentPaymentData.qrCode
+                    ? "Escaneie com o app do seu banco"
+                    : ""}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* PIX Copy and Paste */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Copy className="h-4 w-4" />
                 Código PIX (Copia e Cola)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <div className="flex-1 p-3 bg-gray-50 rounded border text-xs font-mono break-all min-h-[3rem] flex items-center">
+                <div className="flex-1 p-2 bg-gray-50 rounded border text-xs font-mono break-all min-h-[2.5rem] flex items-center">
                   {currentPaymentData.pixCopyPaste ? (
                     currentPaymentData.pixCopyPaste
                   ) : (
@@ -272,12 +320,14 @@ export function PaymentModal({
               <Button
                 variant="outline"
                 onClick={handleCheckPayment}
-                disabled={checkingPayment}
+                disabled={checkingPayment || isPaid}
               >
                 {checkingPayment ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : null}
-                Verificar Pagamento
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                {isPaid ? "Pago ✓" : "Verificar Pagamento"}
               </Button>
             </div>
 

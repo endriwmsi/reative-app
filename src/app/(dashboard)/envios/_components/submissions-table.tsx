@@ -424,8 +424,17 @@ export default function SubmissionsTable({
           onOpenChange={closePaymentModal}
           paymentData={paymentData}
           onPaymentSuccess={() => {
-            // Recarregar a página para atualizar os status de pagamento
-            window.location.reload();
+            // Apenas fechar o modal e mostrar toast de sucesso
+            // O hook usePaymentStatus já atualizou os dados via revalidatePath
+            closePaymentModal();
+            toast.success("Status de pagamento atualizado!", {
+              description: "A tabela será atualizada automaticamente.",
+            });
+
+            // Recarregar apenas se necessário (como fallback)
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
           }}
         />
       )}

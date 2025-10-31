@@ -8,6 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+import { coupon } from "./coupon";
 import { product } from "./product";
 import { user } from "./user";
 
@@ -23,6 +24,11 @@ export const submission = pgTable("submission", {
   productId: integer("product_id")
     .notNull()
     .references(() => product.id, { onDelete: "cascade" }),
+
+  // Cupom utilizado no envio (opcional)
+  couponId: text("coupon_id").references(() => coupon.id, {
+    onDelete: "set null",
+  }),
 
   // Título/descrição do envio
   title: text("title").notNull(),

@@ -18,6 +18,8 @@ export const singleClientSchema = z.object({
     .min(11, "Documento deve ter pelo menos 11 dígitos")
     .max(14, "Documento deve ter no máximo 14 dígitos"),
 
+  couponCode: z.string().optional().or(z.literal("")),
+
   notes: z
     .string()
     .max(500, "As observações devem ter no máximo 500 caracteres")
