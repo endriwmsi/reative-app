@@ -5,7 +5,10 @@ import { CreditCard, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { deleteSubmission } from "@/actions/submission/submission.action";
+import {
+  deleteMultipleSubmissions,
+  deleteSubmission,
+} from "@/actions/submission/submission.action";
 import { DataTable, DataTableColumnHeader } from "@/components/data-table";
 import { PaymentModal } from "@/components/payment/payment-modal";
 import {
@@ -72,6 +75,7 @@ export default function SubmissionsTable({
   const [submissionToDelete, setSubmissionToDelete] =
     useState<SubmissionData | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -113,6 +117,36 @@ export default function SubmissionsTable({
     setSelectedIds([]);
   };
 
+  const handleBulkDelete = () => {
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteMultipleSubmissions(
+        selectedIds,
+        userId,
+        isAdmin,
+      );
+
+      if (result.success) {
+        toast.success(result.message || "Envios removidos com sucesso");
+        setSelectedIds([]);
+        window.location.reload();
+      } else {
+        toast.error(result.error || "Erro ao remover envios");
+      }
+    } catch {
+      toast.error("Erro ao remover envios");
+    } finally {
+      setIsDeleting(false);
+      setBulkDeleteDialogOpen(false);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!submissionToDelete) return;
 
@@ -142,6 +176,19 @@ export default function SubmissionsTable({
 
   const getStatusLabel = (status: string) => {
     switch (status.toLowerCase()) {
+      case "aguardando":
+        return "Aguardando";
+      case "processando":
+        return "Processando";
+      case "parcialmente_concluido":
+        return "Parcialmente Concluído";
+      case "concluido":
+        return "Concluído";
+      case "parcialmente_rejeitado":
+        return "Parcialmente Rejeitado";
+      case "rejeitado":
+        return "Rejeitado";
+      // Status antigos para compatibilidade
       case "completed":
         return "Concluído";
       case "processing":
@@ -152,6 +199,29 @@ export default function SubmissionsTable({
         return "Cancelado";
       default:
         return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "aguardando":
+      case "pending":
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "processando":
+      case "processing":
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      case "parcialmente_concluido":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "concluido":
+      case "completed":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "parcialmente_rejeitado":
+        return "bg-orange-100 text-orange-800 hover:bg-orange-200";
+      case "rejeitado":
+      case "cancelled":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
     }
   };
 
@@ -267,7 +337,11 @@ export default function SubmissionsTable({
       ),
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
-        return <Badge>{getStatusLabel(status)}</Badge>;
+        return (
+          <Badge className={getStatusColor(status)}>
+            {getStatusLabel(status)}
+          </Badge>
+        );
       },
     },
     {
@@ -369,14 +443,27 @@ export default function SubmissionsTable({
                   {selectedIds.length} item(s) selecionado(s) - Total:{" "}
                   {formatCurrency(selectedTotal)}
                 </div>
-                <Button
-                  onClick={handlePayment}
-                  disabled={loading}
-                  className="flex items-center gap-2"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  {loading ? "Processando..." : "Pagar Selecionados"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handlePayment}
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    {loading ? "Processando..." : "Pagar Selecionados"}
+                  </Button>
+                  {isAdmin && (
+                    <Button
+                      onClick={handleBulkDelete}
+                      disabled={isDeleting}
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {isDeleting ? "Removendo..." : "Remover Selecionados"}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -412,6 +499,35 @@ export default function SubmissionsTable({
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
               {isDeleting ? "Removendo..." : "Remover Envio"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão em Lote</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover{" "}
+              <strong>{selectedIds.length}</strong> envio(s) selecionado(s)?
+              <br />
+              Esta ação não pode ser desfeita e só afetará envios não pagos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmBulkDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "Removendo..." : "Remover Envios"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
