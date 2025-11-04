@@ -82,9 +82,41 @@ export class AsaasAPI {
     console.log("Response ok:", response.ok);
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Asaas API Error:", error);
-      throw new Error(`Asaas API Error: ${response.status} - ${error}`);
+      let errorDetail = "";
+      try {
+        const errorText = await response.text();
+        console.error("Asaas API Error Response:", errorText);
+
+        // Tentar fazer parse do JSON do erro para obter mais detalhes
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.errors && Array.isArray(errorJson.errors)) {
+            errorDetail = errorJson.errors
+              .map(
+                (err: Record<string, unknown>) =>
+                  err.description || err.message || err,
+              )
+              .join("; ");
+          } else if (errorJson.message) {
+            errorDetail = errorJson.message;
+          } else {
+            errorDetail = errorText;
+          }
+        } catch {
+          errorDetail = errorText;
+        }
+      } catch {
+        errorDetail = `HTTP ${response.status}`;
+      }
+
+      console.error("Asaas API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        detail: errorDetail,
+        url: url,
+      });
+
+      throw new Error(`Asaas API Error: ${response.status} - ${errorDetail}`);
     }
 
     return response.json();
@@ -179,23 +211,47 @@ export class AsaasAPI {
     description: string,
     externalReference?: string,
   ): Promise<AsaasPaymentResponse> {
+    // Validações de entrada
+    if (!customerId || customerId.trim() === "") {
+      throw new Error("Customer ID é obrigatório");
+    }
+
+    if (!value || value <= 0) {
+      throw new Error("Valor deve ser maior que zero");
+    }
+
+    // Limitar tamanhos para evitar erros da API
+    const limitedDescription = description?.substring(0, 200) || "Pagamento";
+    const limitedExternalReference = externalReference?.substring(0, 50);
+
     const payment: AsaasPayment = {
       customer: customerId,
       billingType: "PIX",
-      value,
+      value: Number(value.toFixed(2)), // Garantir 2 casas decimais
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0], // 24h
-      description,
-      externalReference,
+      description: limitedDescription,
+      externalReference: limitedExternalReference,
     };
 
     console.log("=== Creating PIX Payment ===");
     console.log("Payment data:", payment);
+    console.log("Description length:", limitedDescription.length);
+    console.log(
+      "ExternalReference length:",
+      limitedExternalReference?.length || 0,
+    );
 
-    // Criar o pagamento
-    const createdPayment = await this.createPayment(payment);
-    console.log("Payment created:", createdPayment);
+    let createdPayment: AsaasPaymentResponse;
+    try {
+      // Criar o pagamento
+      createdPayment = await this.createPayment(payment);
+      console.log("Payment created successfully:", createdPayment);
+    } catch (error) {
+      console.error("Error creating payment:", error);
+      throw error;
+    }
 
     // Buscar as informações de cobrança para obter os dados do PIX
     try {

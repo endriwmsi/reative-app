@@ -69,6 +69,15 @@ export async function createPaymentForSubmissions(
       };
     }
 
+    // Limitar número máximo de submissions por pagamento (evitar timeouts e problemas de API)
+    if (submissions.length > 10) {
+      return {
+        success: false,
+        message: "Máximo de 10 envios por pagamento. Selecione menos envios.",
+        error: "TOO_MANY_SUBMISSIONS",
+      };
+    }
+
     // Verificar se o valor total confere
     const calculatedTotal = submissions.reduce(
       (total, sub) => total + parseFloat(sub.totalAmount),
@@ -142,10 +151,21 @@ export async function createPaymentForSubmissions(
       };
     }
 
-    // Criar descrição do pagamento
-    const description = `Pagamento de ${submissions.length} envio(s) - ${submissions
-      .map((s) => s.title)
-      .join(", ")}`;
+    // Criar descrição do pagamento (limitada a 200 caracteres)
+    let description = `Pagamento de ${submissions.length} envio(s)`;
+
+    if (submissions.length <= 3) {
+      // Para até 3 envios, incluir os títulos
+      const titles = submissions.map((s) => s.title).join(", ");
+      const fullDescription = `${description} - ${titles}`;
+      description =
+        fullDescription.length <= 200
+          ? fullDescription
+          : `${description} - ${titles.substring(0, 180)}...`;
+    } else {
+      // Para mais de 3 envios, incluir apenas a quantidade
+      description = `${description} (total: R$ ${data.totalAmount.toFixed(2)})`;
+    }
 
     // Criar pagamento PIX no Asaas
     const customerId = customer.id;
@@ -157,11 +177,18 @@ export async function createPaymentForSubmissions(
       };
     }
 
+    // ExternalReference limitado (máximo 50 caracteres)
+    let externalReference = `submissions-${data.submissionIds.length}`;
+    if (data.submissionIds.length <= 2) {
+      const fullRef = `submissions-${data.submissionIds.join("-")}`;
+      externalReference = fullRef.length <= 50 ? fullRef : externalReference;
+    }
+
     const payment = await asaas.createPixPayment(
       customerId,
       data.totalAmount,
       description,
-      `submissions-${data.submissionIds.join("-")}`,
+      externalReference,
     );
 
     // Atualizar submissions com dados do pagamento
@@ -189,9 +216,34 @@ export async function createPaymentForSubmissions(
     };
   } catch (error) {
     console.error("Erro ao criar pagamento:", error);
+    console.error("Submission IDs:", data.submissionIds);
+    console.error("Total Amount:", data.totalAmount);
+    console.error("Number of submissions:", data.submissionIds.length);
+
+    // Verificar se é um erro específico do Asaas
+    if (error instanceof Error) {
+      if (error.message.includes("400")) {
+        return {
+          success: false,
+          message:
+            "Dados inválidos para criação do pagamento. Verifique se todos os envios são válidos.",
+          error: "INVALID_DATA",
+        };
+      }
+      if (error.message.includes("422")) {
+        return {
+          success: false,
+          message:
+            "Erro de validação no sistema de pagamento. Tente com menos envios ou entre em contato com o suporte.",
+          error: "VALIDATION_ERROR",
+        };
+      }
+    }
+
     return {
       success: false,
-      message: "Erro interno do servidor",
+      message:
+        "Erro interno do servidor. Tente novamente ou entre em contato com o suporte.",
       error: "INTERNAL_ERROR",
     };
   }

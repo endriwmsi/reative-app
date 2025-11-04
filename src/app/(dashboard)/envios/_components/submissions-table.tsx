@@ -113,6 +113,13 @@ export default function SubmissionsTable({
 
   const handlePayment = async () => {
     if (selectedIds.length === 0) return;
+
+    // Validar limite de envios por pagamento
+    if (selectedIds.length > 10) {
+      toast.error("Máximo de 10 envios por pagamento. Selecione menos envios.");
+      return;
+    }
+
     await createPayment(selectedIds);
     setSelectedIds([]);
   };
@@ -442,15 +449,24 @@ export default function SubmissionsTable({
                 <div className="text-sm text-muted-foreground">
                   {selectedIds.length} item(s) selecionado(s) - Total:{" "}
                   {formatCurrency(selectedTotal)}
+                  {selectedIds.length > 10 && (
+                    <div className="text-red-600 text-xs mt-1">
+                      Máximo de 10 envios por pagamento
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
                     onClick={handlePayment}
-                    disabled={loading}
+                    disabled={loading || selectedIds.length > 10}
                     className="flex items-center gap-2"
                   >
                     <CreditCard className="h-4 w-4" />
-                    {loading ? "Processando..." : "Pagar Selecionados"}
+                    {loading
+                      ? "Processando..."
+                      : selectedIds.length > 10
+                        ? "Muitos envios"
+                        : "Pagar Selecionados"}
                   </Button>
                   {isAdmin && (
                     <Button
