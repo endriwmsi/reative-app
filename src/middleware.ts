@@ -25,6 +25,15 @@ export async function middleware(req: NextRequest) {
     nextUrl.pathname.startsWith("/login") ||
     nextUrl.pathname.startsWith("/register");
 
+  // Redirecionamento da rota raiz "/"
+  if (nextUrl.pathname === "/") {
+    if (isLoggedIn) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    } else {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+
   if (isOnProtectedRoute && !isLoggedIn) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackURL", nextUrl.pathname + nextUrl.search);

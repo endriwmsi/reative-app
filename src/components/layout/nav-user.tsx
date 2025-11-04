@@ -23,8 +23,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { getUserInitials } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -108,8 +109,14 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <IconLogout />
-              Log out
+              <Button
+                onClick={() => authClient.signOut()}
+                variant="ghost"
+                className="w-full"
+              >
+                <IconLogout />
+                Log out
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

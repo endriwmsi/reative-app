@@ -166,7 +166,7 @@ export default function ClientsTable({
                 <Eye className="h-4 w-4 mr-2" />
                 Ver detalhes
               </DropdownMenuItem>
-              {isAdmin && !client.isPaid && (
+              {!client.isPaid && (
                 <DropdownMenuItem
                   onClick={() => handleDeleteClick(client)}
                   className="text-red-600 focus:text-red-600"

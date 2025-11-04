@@ -1,6 +1,8 @@
 "use client";
 
-import { Bell, LogOut, Mail, Settings, User } from "lucide-react";
+import { IconLogout } from "@tabler/icons-react";
+import { Bell, Mail, Settings, User } from "lucide-react";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -151,8 +153,21 @@ export function SiteHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
+                <Button
+                  onClick={async () => {
+                    await authClient.signOut({
+                      fetchOptions: {
+                        onSuccess: () => {
+                          redirect("/login");
+                        },
+                      },
+                    });
+                  }}
+                  variant="ghost"
+                >
+                  <IconLogout />
+                  Log out
+                </Button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

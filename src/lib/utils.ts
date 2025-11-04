@@ -9,6 +9,7 @@ export const getValidDomains = () => {
   const domains = [
     "gmail.com",
     "outlook.com",
+    "outlook.com.br",
     "yahoo.com",
     "hotmail.com",
     "icloud.com",
