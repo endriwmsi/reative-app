@@ -31,10 +31,12 @@ interface SubmissionData {
  * Status possíveis:
  * - "aguardando": Todos os clientes estão pendentes
  * - "processando": Alguns clientes estão sendo processados
- * - "parcialmente_concluido": Alguns clientes aprovados, outros ainda pendentes/processando
- * - "concluido": Todos os clientes aprovados
- * - "parcialmente_rejeitado": Alguns clientes rejeitados, outros em diferentes status
- * - "rejeitado": Todos os clientes rejeitados
+ * - "parcialmente_concluido": Alguns clientes aprovados/deferidos, outros ainda pendentes/processando
+ * - "concluido": Todos os clientes aprovados/deferidos/finalizados
+ * - "parcialmente_rejeitado": Alguns clientes rejeitados/indeferidos, outros em diferentes status
+ * - "rejeitado": Todos os clientes rejeitados/indeferidos
+ * - "em_analise_juridica": Maioria dos clientes em análise pós-pagamento
+ * - "finalizado": Todos os clientes finalizados
  */
 async function calculateSubmissionStatus(
   submissionId: string,
@@ -59,18 +61,38 @@ async function calculateSubmissionStatus(
   );
 
   const total = clientsStatus.length;
+
+  // Status pré-pagamento
+  const pendentes = statusCounts.pendente || 0;
+  const processando = statusCounts.processando || 0;
   const aprovados = statusCounts.aprovado || 0;
   const rejeitados = statusCounts.rejeitado || 0;
-  const processando = statusCounts.processando || 0;
-  const pendentes = statusCounts.pendente || 0;
 
-  // Todos aprovados
-  if (aprovados === total) {
+  // Status pós-pagamento (processo jurídico)
+  const deferidos = statusCounts.deferido || 0;
+  const indeferidos = statusCounts.indeferido || 0;
+  const emAnalise = statusCounts.em_analise || 0;
+  const finalizados = statusCounts.finalizado || 0;
+  const cancelados = statusCounts.cancelado || 0;
+
+  // Agrupar status similares
+  const positivos = aprovados + deferidos; // Status de sucesso
+  const negativos = rejeitados + indeferidos + cancelados; // Status de insucesso
+  const concluidos = finalizados; // Status final
+  const analise = processando + emAnalise; // Status de análise
+
+  // Todos finalizados
+  if (concluidos === total) {
+    return "finalizado";
+  }
+
+  // Todos com resultado positivo (aprovado/deferido)
+  if (positivos === total) {
     return "concluido";
   }
 
-  // Todos rejeitados
-  if (rejeitados === total) {
+  // Todos com resultado negativo (rejeitado/indeferido/cancelado)
+  if (negativos === total) {
     return "rejeitado";
   }
 
@@ -79,18 +101,23 @@ async function calculateSubmissionStatus(
     return "aguardando";
   }
 
-  // Alguns processando
-  if (processando > 0) {
-    return "processando";
+  // Maioria em análise (processando/em_analise)
+  if (analise > total / 2) {
+    return emAnalise > 0 ? "em_analise_juridica" : "processando";
   }
 
-  // Tem aprovados e outros status
-  if (aprovados > 0 && aprovados < total) {
-    return rejeitados > 0 ? "parcialmente_rejeitado" : "parcialmente_concluido";
+  // Alguns em análise
+  if (analise > 0) {
+    return emAnalise > 0 ? "em_analise_juridica" : "processando";
   }
 
-  // Tem rejeitados mas não todos
-  if (rejeitados > 0) {
+  // Tem resultados positivos e outros status
+  if (positivos > 0 && positivos < total) {
+    return negativos > 0 ? "parcialmente_rejeitado" : "parcialmente_concluido";
+  }
+
+  // Tem resultados negativos mas não todos
+  if (negativos > 0) {
     return "parcialmente_rejeitado";
   }
 

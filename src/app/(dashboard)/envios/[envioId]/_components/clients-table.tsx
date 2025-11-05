@@ -58,14 +58,28 @@ interface ClientsTableProps {
 
 function getStatusColor(status: string) {
   switch (status.toLowerCase()) {
-    case "aprovado":
-      return "bg-green-100 text-green-800 hover:bg-green-200";
+    // Status iniciais (pré-pagamento)
     case "pendente":
       return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-    case "rejeitado":
-      return "bg-red-100 text-red-800 hover:bg-red-200";
     case "processando":
       return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+    case "aprovado":
+      return "bg-green-100 text-green-800 hover:bg-green-200";
+    case "rejeitado":
+      return "bg-red-100 text-red-800 hover:bg-red-200";
+
+    // Status pós-pagamento (processo jurídico)
+    case "deferido":
+      return "bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
+    case "indeferido":
+      return "bg-rose-100 text-rose-800 hover:bg-rose-200";
+    case "em_analise":
+      return "bg-purple-100 text-purple-800 hover:bg-purple-200";
+    case "finalizado":
+      return "bg-slate-100 text-slate-800 hover:bg-slate-200";
+    case "cancelado":
+      return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+
     default:
       return "bg-gray-100 text-gray-800 hover:bg-gray-200";
   }
@@ -90,10 +104,11 @@ export default function ClientsTable({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const unpaidIds = clients
-        .filter((client) => !client.isPaid)
-        .map((client) => client.id);
-      setSelectedIds(unpaidIds);
+      // Admin pode selecionar todos, outros usuários apenas não pagos
+      const selectableIds = isAdmin
+        ? clients.map((client) => client.id)
+        : clients.filter((client) => !client.isPaid).map((client) => client.id);
+      setSelectedIds(selectableIds);
     } else {
       setSelectedIds([]);
     }
@@ -213,16 +228,20 @@ export default function ClientsTable({
     {
       id: "select",
       header: () => {
-        const unpaidClients = clients.filter((client) => !client.isPaid);
-        const allUnpaidSelected =
-          unpaidClients.length > 0 &&
-          unpaidClients.every((client) => selectedIds.includes(client.id));
+        // Admin pode selecionar todos, outros usuários apenas não pagos
+        const selectableClients = isAdmin
+          ? clients
+          : clients.filter((client) => !client.isPaid);
+
+        const allSelectableSelected =
+          selectableClients.length > 0 &&
+          selectableClients.every((client) => selectedIds.includes(client.id));
 
         return (
           <Checkbox
-            checked={allUnpaidSelected}
+            checked={allSelectableSelected}
             onCheckedChange={handleSelectAll}
-            disabled={unpaidClients.length === 0}
+            disabled={selectableClients.length === 0}
             aria-label="Selecionar todos"
           />
         );
@@ -235,7 +254,7 @@ export default function ClientsTable({
             onCheckedChange={(checked) =>
               handleSelectItem(client.id, checked as boolean)
             }
-            disabled={client.isPaid}
+            disabled={!isAdmin && client.isPaid}
             aria-label="Selecionar item"
           />
         );
@@ -277,7 +296,30 @@ export default function ClientsTable({
         const client = row.original;
         const status = row.getValue("status") as string;
 
-        if (isAdmin && !client.isPaid) {
+        if (isAdmin) {
+          // Admin pode sempre alterar status, mas com opções diferentes baseadas no pagamento
+          const statusOptions = client.isPaid
+            ? [
+                // Opções pós-pagamento (processo jurídico/análise)
+                { value: "aprovado", label: "Aprovado" },
+                { value: "rejeitado", label: "Rejeitado" },
+                { value: "deferido", label: "Deferido" },
+                { value: "indeferido", label: "Indeferido" },
+                { value: "em_analise", label: "Em Análise" },
+                { value: "finalizado", label: "Finalizado" },
+                { value: "cancelado", label: "Cancelado" },
+                // Manter opções anteriores para compatibilidade
+                { value: "pendente", label: "Pendente" },
+                { value: "processando", label: "Processando" },
+              ]
+            : [
+                // Opções pré-pagamento (processo inicial)
+                { value: "pendente", label: "Pendente" },
+                { value: "processando", label: "Processando" },
+                { value: "aprovado", label: "Aprovado" },
+                { value: "rejeitado", label: "Rejeitado" },
+              ];
+
           return (
             <Select
               value={status}
@@ -286,14 +328,15 @@ export default function ClientsTable({
               }
               disabled={isUpdatingStatus}
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="processando">Processando</SelectItem>
-                <SelectItem value="aprovado">Aprovado</SelectItem>
-                <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           );
@@ -334,27 +377,74 @@ export default function ClientsTable({
                 <Eye className="h-4 w-4 mr-2" />
                 Ver detalhes
               </DropdownMenuItem>
-              {isAdmin && !client.isPaid && (
+              {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => handleUpdateStatus(client.id, "aprovado")}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Aprovar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleUpdateStatus(client.id, "rejeitado")}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Rejeitar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleUpdateStatus(client.id, "processando")}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Marcar como Processando
-                  </DropdownMenuItem>
+                  {client.isPaid ? (
+                    // Opções pós-pagamento
+                    <>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "deferido")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Marcar como Deferido
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "indeferido")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Marcar como Indeferido
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "em_analise")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Marcar como Em Análise
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "finalizado")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Marcar como Finalizado
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    // Opções pré-pagamento
+                    <>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "aprovado")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Aprovar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "rejeitado")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Rejeitar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleUpdateStatus(client.id, "processando")
+                        }
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Marcar como Processando
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </>
               )}
               {!client.isPaid && (
@@ -397,14 +487,22 @@ export default function ClientsTable({
                     onValueChange={handleBulkUpdateStatus}
                     disabled={isUpdatingStatus}
                   >
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-48">
                       <SelectValue placeholder="Atualizar status" />
                     </SelectTrigger>
                     <SelectContent>
+                      {/* Status pré-pagamento */}
                       <SelectItem value="pendente">Pendente</SelectItem>
                       <SelectItem value="processando">Processando</SelectItem>
                       <SelectItem value="aprovado">Aprovado</SelectItem>
                       <SelectItem value="rejeitado">Rejeitado</SelectItem>
+
+                      {/* Status pós-pagamento */}
+                      <SelectItem value="deferido">Deferido</SelectItem>
+                      <SelectItem value="indeferido">Indeferido</SelectItem>
+                      <SelectItem value="em_analise">Em Análise</SelectItem>
+                      <SelectItem value="finalizado">Finalizado</SelectItem>
+                      <SelectItem value="cancelado">Cancelado</SelectItem>
                     </SelectContent>
                   </Select>
                 </>
