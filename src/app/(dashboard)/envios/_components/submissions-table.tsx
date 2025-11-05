@@ -5,10 +5,8 @@ import { CreditCard, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  deleteMultipleSubmissions,
-  deleteSubmission,
-} from "@/actions/submission/submission.action";
+import { deleteSubmission } from "@/actions/submission/submission.action";
+import { deleteMultipleSubmissions } from "@/actions/submission/submission-bulk.action";
 import { DataTable, DataTableColumnHeader } from "@/components/data-table";
 import { PaymentModal } from "@/components/payment/payment-modal";
 import {

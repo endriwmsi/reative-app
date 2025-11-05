@@ -6,10 +6,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   deleteMultipleClients,
+  updateMultipleClientsStatus,
+} from "@/actions/submission/submission-bulk.action";
+import {
   deleteSubmissionClient,
   updateClientStatus,
-  updateMultipleClientsStatus,
-} from "@/actions/submission/submission.action";
+} from "@/actions/submission/submission-client.action";
 import { DataTable, DataTableColumnHeader } from "@/components/data-table";
 import {
   AlertDialog,

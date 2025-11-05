@@ -3,6 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { user } from "@/db/schema";
@@ -24,6 +25,8 @@ export async function updateAddressAction(data: UpdateAddressParams) {
     });
 
     if (!session?.user) {
+      redirect("/login");
+
       return {
         success: false,
         error: "Usuário não autenticado",

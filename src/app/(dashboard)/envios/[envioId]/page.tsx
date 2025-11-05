@@ -8,10 +8,6 @@ import {
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { calculateCommissionChain } from "@/actions/commission/commission.action";
-import {
-  getSubmissionById,
-  getSubmissionClients,
-} from "@/actions/submission/submission.action";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +21,8 @@ import { Separator } from "@/components/ui/separator";
 import ClientsTable from "./_components/clients-table";
 import "@/types/auth";
 import Link from "next/link";
+import { getSubmissionById } from "@/actions/submission/submission.action";
+import { getSubmissionClients } from "@/actions/submission/submission-client.action";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 type SubmissionDetail = {

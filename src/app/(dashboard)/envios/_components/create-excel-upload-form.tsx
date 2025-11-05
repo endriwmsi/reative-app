@@ -7,10 +7,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { validateCoupon } from "@/actions/coupon/coupon.action";
-import {
-  createSubmission,
-  processExcelFile,
-} from "@/actions/submission/submission.action";
+import { createSubmission } from "@/actions/submission/submission.action";
+import { processExcelFile } from "@/actions/submission/submission-excel.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
