@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
@@ -10,6 +11,11 @@ import { db } from "@/db/client";
 import { user } from "@/db/schema/user";
 import ProductsTable from "./_components/products-table";
 import ProductsView from "./_components/products-view";
+
+export const metadata: Metadata = {
+  title: "Meus Produtos",
+  description: "Solicite serviços de forma fácil e rápida.",
+};
 
 export default async function ProductsPage() {
   const session = await auth.api.getSession({

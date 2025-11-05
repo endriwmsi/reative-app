@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getUserCoupons } from "@/actions/coupon/coupon.action";
@@ -5,6 +6,11 @@ import { getUserProducts } from "@/actions/product/product.action";
 import { auth } from "@/auth";
 import CouponsTable from "@/components/coupons-table";
 import CreateCouponDialog from "@/components/create-coupon-dialog";
+
+export const metadata: Metadata = {
+  title: "Meus Cupons",
+  description: "Gerencie seus cupons de forma fácil e rápida.",
+};
 
 export default async function CouponsPage() {
   const session = await auth.api.getSession({

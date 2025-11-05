@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import UnderConstructionSVG from "@/components/layout/under-construction";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Ainda em construção",
+};
 
 export default function DashboardPage() {
   return (

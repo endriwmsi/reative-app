@@ -2,9 +2,7 @@
 
 import {
   IconDashboard,
-  IconHelp,
   IconPackage,
-  IconSearch,
   IconSend,
   IconSettings,
   IconTicket,
@@ -121,16 +119,16 @@ const data = {
       url: "/configuracoes",
       icon: IconSettings,
     },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
+    // {
+    //   title: "Get Help",
+    //   url: "#",
+    //   icon: IconHelp,
+    // },
+    // {
+    //   title: "Search",
+    //   url: "#",
+    //   icon: IconSearch,
+    // },
   ],
   // documents: [
   //   {
