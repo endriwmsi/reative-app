@@ -10,6 +10,20 @@ import {
 import { db } from "@/db/client";
 import { submission, submissionClient } from "@/db/schema";
 
+/**
+ * LÓGICA DO STATUS DA SUBMISSION:
+ *
+ * O status da submission reflete o status individual de cada cliente:
+ *
+ * ✅ APROVADO (concluido): Todos os clientes estão aprovados/deferidos
+ * ❌ REJEITADO (rejeitado): Todos os clientes estão rejeitados/indeferidos/cancelados
+ * ⚠️ PARCIALMENTE APROVADO (parcialmente_concluido): Alguns clientes aprovados, outros pendentes/processando
+ * ⚠️ PARCIALMENTE REJEITADO (parcialmente_rejeitado): Alguns clientes rejeitados, outros em diferentes status
+ * 🔄 PROCESSANDO/EM ANÁLISE: Clientes sendo processados ou em análise jurídica
+ * ⏳ AGUARDANDO: Todos os clientes ainda pendentes
+ * ✔️ FINALIZADO: Todos os clientes finalizados (processo concluído)
+ */
+
 export async function calculateSubmissionStatus(
   submissionId: string,
 ): Promise<SubmissionStatus> {
@@ -56,58 +70,57 @@ export async function calculateSubmissionStatus(
     0,
   );
 
-  // Todos finalizados
+  // REGRA PRINCIPAL: Status da submission reflete o status individual dos clientes
+  // Se todos os clientes estiverem aprovados → submission aprovada
+  // Se todos os clientes estiverem rejeitados → submission rejeitada
+  // Se alguns aprovados e outros não → parcialmente aprovada/rejeitada
+
+  // 1. Todos finalizados - prioridade máxima
   if (completed === total) {
     return SUBMISSION_STATUS.FINALIZADO;
   }
 
-  // Todos com resultado positivo (aprovado/deferido)
+  // 2. Todos aprovados (aprovado/deferido) → SUBMISSION APROVADA ✅
   if (positives === total) {
     return SUBMISSION_STATUS.CONCLUIDO;
   }
 
-  // Todos com resultado negativo (rejeitado/indeferido/cancelado)
+  // 3. Todos rejeitados (rejeitado/indeferido/cancelado) → SUBMISSION REJEITADA ❌
   if (negatives === total) {
     return SUBMISSION_STATUS.REJEITADO;
   }
 
-  // Todos pendentes
+  // 4. Mistura de aprovados e rejeitados → PARCIALMENTE REJEITADA ⚠️
+  if (positives > 0 && negatives > 0) {
+    return SUBMISSION_STATUS.PARCIALMENTE_REJEITADO;
+  }
+
+  // 5. Alguns aprovados, resto pendente/processando → PARCIALMENTE APROVADA ✅
+  if (positives > 0 && positives < total) {
+    return SUBMISSION_STATUS.PARCIALMENTE_CONCLUIDO;
+  }
+
+  // 6. Alguns rejeitados, resto pendente/processando → PARCIALMENTE REJEITADA ❌
+  if (negatives > 0 && negatives < total) {
+    return SUBMISSION_STATUS.PARCIALMENTE_REJEITADO;
+  }
+
+  // 7. Todos pendentes
   if (pending === total) {
     return SUBMISSION_STATUS.AGUARDANDO;
   }
 
-  // Maioria em análise (processando/em_analise)
-  if (analysis > total / 2) {
-    return statusCounts.em_analise > 0
-      ? SUBMISSION_STATUS.EM_ANALISE_JURIDICA
-      : SUBMISSION_STATUS.PROCESSANDO;
-  }
-
-  // Alguns em análise
+  // 8. Em análise (processando/em_analise)
   if (analysis > 0) {
     return statusCounts.em_analise > 0
       ? SUBMISSION_STATUS.EM_ANALISE_JURIDICA
       : SUBMISSION_STATUS.PROCESSANDO;
   }
 
-  // Tem resultados positivos e outros status
-  if (positives > 0 && positives < total) {
-    return negatives > 0
-      ? SUBMISSION_STATUS.PARCIALMENTE_REJEITADO
-      : SUBMISSION_STATUS.PARCIALMENTE_CONCLUIDO;
-  }
-
-  // Tem resultados negativos mas não todos
-  if (negatives > 0) {
-    return SUBMISSION_STATUS.PARCIALMENTE_REJEITADO;
-  }
-
+  // Fallback
   return SUBMISSION_STATUS.AGUARDANDO;
 }
 
-/**
- * Atualiza o status do envio baseado nos status dos clientes
- */
 export async function updateSubmissionStatus(
   submissionId: string,
 ): Promise<void> {
@@ -122,16 +135,12 @@ export async function updateSubmissionStatus(
     .where(eq(submission.id, submissionId));
 }
 
-/**
- * Função exportada para recalcular status de um envio específico
- */
 export async function recalculateSubmissionStatus(
   submissionId: string,
   userId: string,
   isAdmin = false,
 ) {
   try {
-    // Verificar se o usuário tem permissão para atualizar este envio
     const [submissionData] = await db
       .select({
         userId: submission.userId,
@@ -158,4 +167,34 @@ export async function recalculateSubmissionStatus(
     console.error("Erro ao recalcular status do envio:", error);
     return { success: false, error: "Erro ao recalcular status do envio" };
   }
+}
+
+/**
+ * Função de debug para verificar o status calculado de um envio
+ */
+export async function debugSubmissionStatus(submissionId: string) {
+  const clientsStatus = await db
+    .select({
+      id: submissionClient.id,
+      name: submissionClient.name,
+      status: submissionClient.status,
+    })
+    .from(submissionClient)
+    .where(eq(submissionClient.submissionId, submissionId));
+
+  const calculatedStatus = await calculateSubmissionStatus(submissionId);
+
+  return {
+    submissionId,
+    calculatedStatus,
+    totalClients: clientsStatus.length,
+    clients: clientsStatus,
+    statusBreakdown: clientsStatus.reduce(
+      (acc, client) => {
+        acc[client.status] = (acc[client.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    ),
+  };
 }

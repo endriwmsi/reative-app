@@ -188,24 +188,15 @@ export default function SubmissionsTable({
       case "em_analise_juridica":
         return "Em Análise Jurídica";
       case "parcialmente_concluido":
-        return "Parcialmente Concluído";
+        return "Parcialmente Aprovado";
       case "concluido":
-        return "Concluído";
+        return "Aprovado";
       case "finalizado":
         return "Finalizado";
       case "parcialmente_rejeitado":
         return "Parcialmente Rejeitado";
       case "rejeitado":
         return "Rejeitado";
-      // Status antigos para compatibilidade
-      case "completed":
-        return "Concluído";
-      case "processing":
-        return "Processando";
-      case "pending":
-        return "Pendente";
-      case "cancelled":
-        return "Cancelado";
       default:
         return status;
     }
