@@ -58,7 +58,7 @@ const baseURL =
     ? "https://api.asaas.com/v3"
     : "https://api-sandbox.asaas.com/v3";
 
-const apiKey = `$aact_hmlg_${process.env.ASAAS_API_KEY}` || "";
+const apiKey = `$aact_prod_${process.env.ASAAS_API_KEY}` || "";
 
 export class AsaasAPI {
   private async request<T>(
