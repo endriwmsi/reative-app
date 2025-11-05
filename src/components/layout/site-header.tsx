@@ -22,10 +22,7 @@ import { Skeleton } from "../ui/skeleton";
 import { ModeToggle } from "./mode-toggle";
 
 const mockNotifications = [
-  { id: 1, title: "New message received", time: "2 min ago", unread: true },
-  { id: 2, title: "Project updated", time: "1 hour ago", unread: true },
-  { id: 3, title: "Meeting reminder", time: "3 hours ago", unread: false },
-  { id: 4, title: "Task completed", time: "1 day ago", unread: false },
+  { id: 1, title: "Bem vindo a plataforma", time: "1 min ago", unread: true },
 ];
 
 export function SiteHeader() {

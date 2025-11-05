@@ -6,13 +6,6 @@ async function seedProducts() {
 
   const initialProducts = [
     {
-      name: "Limpa Nome Básico",
-      description:
-        "Serviço básico de limpeza de nome com análise de CPF e remoção de negativações simples.",
-      basePrice: "10.00",
-      category: "limpa_nome",
-    },
-    {
       name: "Limpa Nome Completo",
       description:
         "Serviço completo de limpeza de nome incluindo análise detalhada, remoção de negativações e renegociação de dívidas.",
@@ -20,25 +13,25 @@ async function seedProducts() {
       category: "limpa_nome",
     },
     {
-      name: "Recuperação de Crédito Básica",
+      name: "Atualização de Rating Comercial - PJ",
       description:
-        "Serviço de recuperação de crédito com análise de score e orientações para melhoria.",
-      basePrice: "15.00",
-      category: "recuperacao_credito",
+        "VOLTE A TER CRÉDITO NO MERCADO! Prazo médio de 15 dias para conclusão do serviço. Consulte o administrador para saber mais sobre o envio da documentação necessária.",
+      basePrice: "550",
+      category: "atualizacao_rating",
     },
     {
-      name: "Recuperação de Crédito Premium",
+      name: "Atualização de Rating Comercial - PF",
       description:
-        "Serviço premium de recuperação de crédito com acompanhamento mensal e estratégias personalizadas.",
-      basePrice: "50.00",
-      category: "recuperacao_credito",
+        "VOLTE A TER CRÉDITO NO MERCADO! Prazo médio de 15 dias para conclusão do serviço. Consulte o administrador para saber mais sobre o envio da documentação necessária.",
+      basePrice: "550",
+      category: "atualizacao_rating",
     },
     {
-      name: "Consultoria Financeira",
+      name: "BACEN",
       description:
-        "Consultoria personalizada para organização financeira e planejamento de pagamentos.",
-      basePrice: "75.00",
-      category: "consultoria",
+        "Prazo médio de 90 dias para conclusão do serviço. Consulte o administrador para saber mais sobre o envio da documentação necessária.",
+      basePrice: "1500",
+      category: "atualizacao_rating",
     },
   ];
 
