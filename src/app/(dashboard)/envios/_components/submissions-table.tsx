@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePayment } from "@/hooks/use-payment";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { DownloadClientsButton } from "./download-clients-button";
 
 interface SubmissionData {
   id: string;
@@ -453,6 +454,7 @@ export default function SubmissionsTable({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  <DownloadClientsButton selectedSubmissionIds={selectedIds} />
                   <Button
                     onClick={handlePayment}
                     disabled={loading || selectedIds.length > 10}
