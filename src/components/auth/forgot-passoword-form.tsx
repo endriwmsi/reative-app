@@ -67,8 +67,8 @@ export const ForgotPasswordForm = () => {
           name="email"
           render={({ field }) => (
             <div className="grid gap-1">
+              <Label htmlFor="email">Email</Label>
               <FormControl>
-                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   {...field}
