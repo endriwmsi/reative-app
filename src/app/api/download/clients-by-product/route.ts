@@ -102,9 +102,35 @@ export async function POST(request: NextRequest) {
       bookType: "xlsx",
     });
 
-    // Definir nome do arquivo
-    const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const filename = `clientes-por-produto-${timestamp}.xlsx`;
+    // Definir nome do arquivo baseado nos produtos
+    const currentDate = new Date()
+      .toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "-"); // DD-MM-YYYY
+
+    let filename: string;
+
+    if (productGroups.length === 1) {
+      // Se há apenas um produto, usar o nome dele
+      const productName = productGroups[0].productName
+        .replace(/[^\w\s-]/g, "") // Remove caracteres especiais
+        .replace(/\s+/g, " ") // Normaliza espaços
+        .trim()
+        .substring(0, 50); // Limita a 50 caracteres para evitar nomes muito longos
+      filename = `exportacao_(${productName})_${currentDate}.xlsx`;
+    } else if (productGroups.length <= 3) {
+      // Se há poucos produtos, usar os nomes deles
+      const productNames = productGroups
+        .map((p) => p.productName.split(" ")[0]) // Pega primeira palavra de cada produto
+        .join("-");
+      filename = `exportacao_(${productNames})_${currentDate}.xlsx`;
+    } else {
+      // Se há muitos produtos, usar nome genérico com quantidade
+      filename = `exportacao_(${productGroups.length} produtos)_${currentDate}.xlsx`;
+    }
 
     // Retornar o arquivo
     return new NextResponse(excelBuffer, {

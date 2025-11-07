@@ -93,10 +93,9 @@ export default function SubmissionsTable({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const unpaidIds = submissions
-        .filter((submission) => !submission.isPaid)
-        .map((submission) => submission.id);
-      setSelectedIds(unpaidIds);
+      // Selecionar todos os envios (pagos e não pagos) para permitir exportação
+      const allIds = submissions.map((submission) => submission.id);
+      setSelectedIds(allIds);
     } else {
       setSelectedIds([]);
     }
@@ -113,13 +112,26 @@ export default function SubmissionsTable({
   const handlePayment = async () => {
     if (selectedIds.length === 0) return;
 
-    // Validar limite de envios por pagamento
-    if (selectedIds.length > 10) {
-      toast.error("Máximo de 10 envios por pagamento. Selecione menos envios.");
+    // Filtrar apenas envios não pagos dos selecionados
+    const unpaidSelectedIds = selectedIds.filter((id) => {
+      const submission = submissions.find((s) => s.id === id);
+      return submission && !submission.isPaid;
+    });
+
+    if (unpaidSelectedIds.length === 0) {
+      toast.error("Nenhum envio não pago selecionado para pagamento.");
       return;
     }
 
-    await createPayment(selectedIds);
+    // Validar limite de envios por pagamento
+    if (unpaidSelectedIds.length > 10) {
+      toast.error(
+        "Máximo de 10 envios por pagamento. Selecione menos envios não pagos.",
+      );
+      return;
+    }
+
+    await createPayment(unpaidSelectedIds);
     setSelectedIds([]);
   };
 
@@ -130,10 +142,21 @@ export default function SubmissionsTable({
   const handleConfirmBulkDelete = async () => {
     if (selectedIds.length === 0) return;
 
+    // Filtrar apenas envios não pagos dos selecionados
+    const unpaidSelectedIds = selectedIds.filter((id) => {
+      const submission = submissions.find((s) => s.id === id);
+      return submission && !submission.isPaid;
+    });
+
+    if (unpaidSelectedIds.length === 0) {
+      toast.error("Nenhum envio não pago selecionado para remoção.");
+      return;
+    }
+
     setIsDeleting(true);
     try {
       const result = await deleteMultipleSubmissions(
-        selectedIds,
+        unpaidSelectedIds,
         userId,
         isAdmin,
       );
@@ -248,20 +271,18 @@ export default function SubmissionsTable({
     {
       id: "select",
       header: () => {
-        const unpaidSubmissions = submissions.filter(
-          (submission) => !submission.isPaid,
-        );
-        const allUnpaidSelected =
-          unpaidSubmissions.length > 0 &&
-          unpaidSubmissions.every((submission) =>
+        // Verificar se todos os envios estão selecionados
+        const allSelected =
+          submissions.length > 0 &&
+          submissions.every((submission) =>
             selectedIds.includes(submission.id),
           );
 
         return (
           <Checkbox
-            checked={allUnpaidSelected}
+            checked={allSelected}
             onCheckedChange={handleSelectAll}
-            disabled={unpaidSubmissions.length === 0}
+            disabled={submissions.length === 0}
             aria-label="Selecionar todos"
           />
         );
@@ -274,7 +295,6 @@ export default function SubmissionsTable({
             onCheckedChange={(checked) =>
               handleSelectItem(submission.id, checked as boolean)
             }
-            disabled={submission.isPaid}
             aria-label="Selecionar item"
           />
         );
@@ -421,12 +441,18 @@ export default function SubmissionsTable({
     },
   ];
 
-  const selectedTotal = submissions
-    .filter((submission) => selectedIds.includes(submission.id))
-    .reduce(
-      (total, submission) => total + parseFloat(submission.totalAmount),
-      0,
-    );
+  const selectedSubmissions = submissions.filter((submission) =>
+    selectedIds.includes(submission.id),
+  );
+
+  const selectedUnpaidSubmissions = selectedSubmissions.filter(
+    (submission) => !submission.isPaid,
+  );
+
+  const selectedTotal = selectedSubmissions.reduce(
+    (total, submission) => total + parseFloat(submission.totalAmount),
+    0,
+  );
 
   return (
     <>
@@ -447,9 +473,15 @@ export default function SubmissionsTable({
                 <div className="text-sm text-muted-foreground">
                   {selectedIds.length} item(s) selecionado(s) - Total:{" "}
                   {formatCurrency(selectedTotal)}
-                  {selectedIds.length > 10 && (
+                  {selectedUnpaidSubmissions.length !== selectedIds.length && (
+                    <div className="text-blue-600 text-xs mt-1">
+                      {selectedUnpaidSubmissions.length} não pago(s) de{" "}
+                      {selectedIds.length} selecionado(s)
+                    </div>
+                  )}
+                  {selectedUnpaidSubmissions.length > 10 && (
                     <div className="text-red-600 text-xs mt-1">
-                      Máximo de 10 envios por pagamento
+                      Máximo de 10 envios não pagos por pagamento
                     </div>
                   )}
                 </div>
@@ -457,17 +489,21 @@ export default function SubmissionsTable({
                   <DownloadClientsButton selectedSubmissionIds={selectedIds} />
                   <Button
                     onClick={handlePayment}
-                    disabled={loading || selectedIds.length > 10}
+                    disabled={
+                      loading ||
+                      selectedUnpaidSubmissions.length > 10 ||
+                      selectedUnpaidSubmissions.length === 0
+                    }
                     className="flex items-center gap-2"
                   >
                     <CreditCard className="h-4 w-4" />
                     {loading
                       ? "Processando..."
-                      : selectedIds.length > 10
-                        ? "Muitos envios"
-                        : "Pagar Selecionados"}
+                      : selectedUnpaidSubmissions.length === 0
+                        ? "Todos pagos"
+                        : `Pagar ${selectedUnpaidSubmissions.length} não pago(s)`}
                   </Button>
-                  {isAdmin && (
+                  {isAdmin && selectedUnpaidSubmissions.length > 0 && (
                     <Button
                       onClick={handleBulkDelete}
                       disabled={isDeleting}
@@ -475,7 +511,9 @@ export default function SubmissionsTable({
                       className="flex items-center gap-2"
                     >
                       <Trash2 className="h-4 w-4" />
-                      {isDeleting ? "Removendo..." : "Remover Selecionados"}
+                      {isDeleting
+                        ? "Removendo..."
+                        : `Remover ${selectedUnpaidSubmissions.length} não pago(s)`}
                     </Button>
                   )}
                 </div>
@@ -528,9 +566,11 @@ export default function SubmissionsTable({
             <AlertDialogTitle>Confirmar Exclusão em Lote</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja remover{" "}
-              <strong>{selectedIds.length}</strong> envio(s) selecionado(s)?
+              <strong>{selectedUnpaidSubmissions.length}</strong> envio(s) não
+              pago(s) selecionado(s)?
               <br />
-              Esta ação não pode ser desfeita e só afetará envios não pagos.
+              Esta ação não pode ser desfeita. Envios já pagos não serão
+              afetados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
