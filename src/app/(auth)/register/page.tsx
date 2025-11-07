@@ -24,7 +24,7 @@ const RegisterPage = async ({ searchParams }: RegisterPageProps) => {
         <span className="text-gray-400">Já tem uma conta? </span>
         <Link
           href="/login"
-          className="text-white underline underline-offset-4 hover:text-gray-300"
+          className="text-primary underline underline-offset-4 hover:text-primary/50"
         >
           Entre agora
         </Link>

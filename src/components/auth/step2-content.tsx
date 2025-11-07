@@ -22,7 +22,7 @@ export function Step2Content({ control }: Step2ContentProps) {
                 {...field}
                 type="text"
                 placeholder="CPF"
-                className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                className="w-full border-0 bg-primary/10 px-4 py-5"
                 maxLength={14}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "");
@@ -48,7 +48,7 @@ export function Step2Content({ control }: Step2ContentProps) {
                 {...field}
                 type="text"
                 placeholder="CNPJ"
-                className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                className="w-full border-0 bg-primary/10 px-4 py-5"
                 maxLength={18}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "");
@@ -74,7 +74,7 @@ export function Step2Content({ control }: Step2ContentProps) {
                 {...field}
                 type="tel"
                 placeholder="Telefone"
-                className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                className="w-full border-0 bg-primary/10 px-4 py-5"
                 maxLength={15}
                 onChange={(e) => {
                   // Simple phone mask

@@ -26,11 +26,11 @@ export default function AuthLayout({
 
       {/* Login card */}
       <div className="relative z-10 flex w-full max-w-7xl">
-        <div className="w-full rounded-2xl border border-gray-700/50 bg-zinc-950 p-8 shadow-2xl md:w-[40%] md:rounded-l-2xl md:rounded-r-none md:p-14">
+        <div className="w-full rounded-2xl border border-secondary/50 bg-secondary p-8 shadow-2xl md:w-[40%] md:rounded-l-2xl md:rounded-r-none md:p-14">
           {/* Logo */}
           <div className="mb-10">
-            <div className="text-2xl font-bold text-white">Lorem Ipsum</div>
-            <div className="text-sm text-gray-400">Platform</div>
+            <div className="text-2xl font-bold text-primary">Lorem Ipsum</div>
+            <div className="text-sm text-primary/50">Platform</div>
           </div>
 
           {/* Content with original padding */}

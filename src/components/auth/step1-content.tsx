@@ -22,7 +22,7 @@ export function Step1Content({ control }: Step1ContentProps) {
                 id="fullname"
                 type="text"
                 placeholder="Nome completo"
-                className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                className="w-full border-0 bg-primary/10 px-4 py-5"
                 autoComplete="name"
               />
             </FormControl>
@@ -42,7 +42,7 @@ export function Step1Content({ control }: Step1ContentProps) {
                 id="email"
                 type="email"
                 placeholder="nome@exemplo.com"
-                className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                className="w-full border-0 bg-primary/10 px-4 py-5"
                 autoComplete="email"
               />
             </FormControl>
@@ -61,7 +61,7 @@ export function Step1Content({ control }: Step1ContentProps) {
                 {...field}
                 id="password"
                 placeholder="Senha"
-                className="text-secondary border-0 bg-zinc-900 px-4 py-5"
+                className="border-0 bg-primary/10 px-4 py-5"
                 autoComplete="new-password"
               />
             </FormControl>
@@ -80,7 +80,7 @@ export function Step1Content({ control }: Step1ContentProps) {
                 {...field}
                 id="password-confirm"
                 placeholder="Confirme sua senha"
-                className="text-secondary border-0 bg-zinc-900 px-4 py-5"
+                className="border-0 bg-primary/10 px-4 py-5"
                 autoComplete="new-password"
               />
             </FormControl>

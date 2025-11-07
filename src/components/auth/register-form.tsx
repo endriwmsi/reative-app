@@ -39,8 +39,8 @@ export function RegisterForm({ referralCode }: RegisterFormProps) {
   return (
     <div className="w-full">
       <div className="mb-9">
-        <h1 className="mb-2 text-2xl font-bold text-white">Criar conta</h1>
-        <p className="text-gray-400">
+        <h1 className="mb-2 text-2xl font-bold text-primary">Criar conta</h1>
+        <p className="text-primary/50">
           Crie sua conta e tenha acesso a todos os benefícios
         </p>
       </div>

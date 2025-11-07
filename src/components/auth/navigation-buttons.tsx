@@ -36,8 +36,8 @@ export function NavigationButtons({
         <Button
           type="button"
           onClick={onNext}
-          className="text-primary flex items-center space-x-2"
-          variant="secondary"
+          className="text-secondary flex items-center space-x-2"
+          variant="default"
         >
           <span>Próximo</span>
           <ChevronRight size={16} />
@@ -45,8 +45,8 @@ export function NavigationButtons({
       ) : (
         <Button
           type="submit"
-          className="text-primary"
-          variant="secondary"
+          className="text-secondary"
+          variant="default"
           disabled={isPending || !acceptTerms}
         >
           {isPending ? (

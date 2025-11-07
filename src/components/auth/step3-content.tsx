@@ -24,7 +24,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                 {...field}
                 type="text"
                 placeholder="Logradouro"
-                className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                className="w-full border-0 bg-primary/10 px-4 py-5"
               />
             </FormControl>
             <FormMessage />
@@ -44,7 +44,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                   {...field}
                   type="text"
                   placeholder="Número"
-                  className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                  className="w-full border-0 bg-primary/10 px-4 py-5"
                 />
               </FormControl>
               <FormMessage />
@@ -63,7 +63,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                   {...field}
                   type="text"
                   placeholder="Complemento"
-                  className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                  className="w-full border-0 bg-primary/10 px-4 py-5"
                 />
               </FormControl>
               <FormMessage />
@@ -82,7 +82,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                   {...field}
                   type="text"
                   placeholder="Bairro"
-                  className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                  className="w-full border-0 bg-primary/10 px-4 py-5"
                 />
               </FormControl>
               <FormMessage />
@@ -103,7 +103,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                   {...field}
                   type="text"
                   placeholder="Cidade"
-                  className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                  className="w-full border-0 bg-primary/10 px-4 py-5"
                 />
               </FormControl>
               <FormMessage />
@@ -122,7 +122,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                   {...field}
                   type="text"
                   placeholder="Estado"
-                  className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                  className="w-full border-0 bg-primary/10 px-4 py-5"
                   maxLength={2}
                 />
               </FormControl>
@@ -144,7 +144,7 @@ export function Step3Content({ control }: Step3ContentProps) {
                   {...field}
                   type="text"
                   placeholder="CEP"
-                  className="text-secondary w-full border-0 bg-zinc-900 px-4 py-5"
+                  className="w-full border-0 bg-primary/10 px-4 py-5"
                   maxLength={9}
                   onChange={(e) => {
                     // Simple CEP mask
@@ -178,12 +178,12 @@ export function Step3Content({ control }: Step3ContentProps) {
                 />
                 <label
                   htmlFor="terms"
-                  className="cursor-pointer text-sm text-gray-400"
+                  className="cursor-pointer text-sm text-primary/50"
                 >
                   Eu aceito os{" "}
                   <Link
                     href="/termos-e-condicoes"
-                    className="text-white underline underline-offset-4 hover:text-gray-300"
+                    className="text-primary underline underline-offset-4 hover:text-gray-300"
                   >
                     Termos & Condições
                   </Link>

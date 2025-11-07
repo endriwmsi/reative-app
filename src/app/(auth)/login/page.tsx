@@ -17,7 +17,7 @@ const LoginPage = () => {
         <span className="text-gray-400">Ainda não tem uma conta? </span>
         <Link
           href="/register"
-          className="text-white underline underline-offset-4 hover:text-gray-300"
+          className="text-primary underline underline-offset-4 hover:text-primary/50"
         >
           Crie uma aqui
         </Link>

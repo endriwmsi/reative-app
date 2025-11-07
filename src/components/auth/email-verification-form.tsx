@@ -52,7 +52,7 @@ const EmailVerificationForm = () => {
           type="email"
           name="email"
           id="email"
-          className="border-0 bg-zinc-900 px-4 py-5"
+          className="border-0 bg-primary/10 px-4 py-5"
         />
       </div>
 

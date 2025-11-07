@@ -28,7 +28,7 @@ export function StepIndicator({ currentStep, steps }: StepIndicatorProps) {
             </div>
             <div className="mt-2 text-center">
               <p
-                className={`text-xs font-medium ${step.number <= currentStep ? "text-white" : "text-gray-400"}`}
+                className={`text-xs font-medium ${step.number <= currentStep ? "text-primary" : "text-primary/60"}`}
               >
                 {step.title}
               </p>

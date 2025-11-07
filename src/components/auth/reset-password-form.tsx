@@ -1,12 +1,17 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import type z from "zod";
+import { resetPasswordSchema } from "@/app/(auth)/_schemas/reset-password-schema";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { resetPassword } from "@/lib/auth-client";
+import { Form, FormControl, FormField, FormMessage } from "../ui/form";
 import { Spinner } from "../ui/spinner";
 
 interface ResetPasswordFormProps {
@@ -17,62 +22,89 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
 
-  async function handleSubmit(evt: React.FormEvent<HTMLFormElement>) {
-    evt.preventDefault();
-    const formData = new FormData(evt.currentTarget);
+  const form = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-    const password = String(formData.get("password"));
-    if (!password) return toast.error("Por favor, insira sua senha.");
+  const handleSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
+    setIsPending(true);
 
-    const confirmPassword = String(formData.get("confirmPassword"));
-
-    if (password !== confirmPassword) {
-      return toast.error("As senhas não coincidem.");
+    try {
+      await resetPassword({
+        newPassword: values.password,
+        token,
+        fetchOptions: {
+          onRequest: () => {
+            setIsPending(true);
+          },
+          onResponse: () => {
+            setIsPending(false);
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+          onSuccess: () => {
+            toast.success("Senha redefinida com sucesso.");
+            router.push("/login");
+          },
+        },
+      });
+    } catch (error) {
+      toast.error("Erro ao redefinir a senha.");
+      console.error("Reset password error:", error);
+      setIsPending(false);
     }
-
-    await resetPassword({
-      newPassword: password,
-      token,
-      fetchOptions: {
-        onRequest: () => {
-          setIsPending(true);
-        },
-        onResponse: () => {
-          setIsPending(false);
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message);
-        },
-        onSuccess: () => {
-          toast.success("Senha redefinida com sucesso.");
-          router.push("/login");
-        },
-      },
-    });
-  }
+  };
 
   return (
-    <form className="w-full max-w-sm space-y-4" onSubmit={handleSubmit}>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Nova senha</Label>
-        <PasswordInput id="password" name="password" />
-      </div>
+    <Form {...form}>
+      <form
+        className="w-full max-w-sm space-y-4"
+        onSubmit={form.handleSubmit(handleSubmit)}
+      >
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <div className="grid gap-1">
+              <FormControl>
+                <Label htmlFor="password">Nova senha</Label>
+                <PasswordInput id="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </div>
+          )}
+        />
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="confirmPassword">Confirmar senha</Label>
-        <PasswordInput id="confirmPassword" name="confirmPassword" />
-      </div>
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <div className="grid gap-1">
+              <FormControl>
+                <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                <PasswordInput id="confirmPassword" {...field} />
+              </FormControl>
+              <FormMessage />
+            </div>
+          )}
+        />
 
-      <Button className="w-full" type="submit" disabled={isPending}>
-        {isPending ? (
-          <span className="flex items-center gap-2">
-            <Spinner />
-            Redefinindo senha
-          </span>
-        ) : (
-          "Redefinir senha"
-        )}
-      </Button>
-    </form>
+        <Button className="w-full" type="submit" disabled={isPending}>
+          {isPending ? (
+            <span className="flex items-center gap-2">
+              <Spinner />
+              Redefinindo senha
+            </span>
+          ) : (
+            "Redefinir senha"
+          )}
+        </Button>
+      </form>
+    </Form>
   );
 };

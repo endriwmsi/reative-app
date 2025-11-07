@@ -56,8 +56,8 @@ export function LoginForm() {
   return (
     <div className="w-full">
       <div className="mb-9">
-        <h1 className="mb-2 text-2xl font-bold text-white">Entrar</h1>
-        <p className="text-gray-400">
+        <h1 className="mb-2 text-2xl font-bold text-primary">Entrar</h1>
+        <p className="text-primary/50">
           Acesse sua conta e tenha acesso a todos os benefícios
         </p>
       </div>
@@ -76,7 +76,7 @@ export function LoginForm() {
                       id="email"
                       type="email"
                       placeholder="nome@exemplo.com"
-                      className="text-primary w-full border-0 bg-zinc-900 px-4 py-5"
+                      className="w-full border-0 bg-primary/10 px-4 py-5"
                       autoComplete="email"
                       disabled={isPending}
                       required
@@ -97,7 +97,7 @@ export function LoginForm() {
                       {...field}
                       id="password"
                       placeholder="********"
-                      className="border-0 bg-zinc-900 px-4 py-5"
+                      className="border-0 bg-primary/10 px-4 py-5"
                       disabled={isPending}
                     />
                   </FormControl>
@@ -117,14 +117,14 @@ export function LoginForm() {
                 /> */}
                 <label
                   htmlFor="keepSignedIn"
-                  className="cursor-pointer text-sm text-gray-400"
+                  className="cursor-pointer text-sm text-primary"
                 >
                   Mantenha-me conectado
                 </label>
               </div>
               <Link
                 href="/forgot-password"
-                className="inline-block text-sm text-gray-400 underline-offset-4 hover:text-white hover:underline"
+                className="inline-block text-sm text-primary underline-offset-4 hover:text-primary/50 hover:underline"
               >
                 Esqueceu sua senha?
               </Link>
@@ -132,8 +132,8 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              className="text-primary w-full"
-              variant="secondary"
+              className="w-full"
+              variant="default"
               disabled={isPending}
             >
               {isPending ? (
