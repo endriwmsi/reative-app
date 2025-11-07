@@ -20,6 +20,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import ClientsTable from "./_components/clients-table";
 import "@/types/auth";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSubmissionById } from "@/actions/submission/submission.action";
 import { getSubmissionClients } from "@/actions/submission/submission-client.action";
@@ -61,6 +62,11 @@ interface EnvioDetailPageProps {
     envioId: string;
   };
 }
+
+export const metadata: Metadata = {
+  title: "Meus Envios",
+  description: "Gerencie seus envios de forma fácil e rápida.",
+};
 
 export default async function EnvioDetailPage({
   params,
