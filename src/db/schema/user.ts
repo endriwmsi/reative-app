@@ -15,6 +15,9 @@ export const user = pgTable("user", {
   phone: text("phone").notNull(),
 
   role: text("role").default("user"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
 
   image: text("image"),
 
