@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidCNPJ, isValidCPF } from "@/lib/utils";
 
 export const singleClientSchema = z.object({
   title: z
@@ -15,8 +16,22 @@ export const singleClientSchema = z.object({
 
   document: z
     .string()
-    .min(11, "Documento deve ter pelo menos 11 dígitos")
-    .max(14, "Documento deve ter no máximo 14 dígitos"),
+    .min(1, "Documento é obrigatório")
+    .refine(
+      (value) => {
+        const cleanDocument = value.replace(/\D/g, "");
+        if (cleanDocument.length === 11) {
+          return isValidCPF(cleanDocument);
+        }
+        if (cleanDocument.length === 14) {
+          return isValidCNPJ(cleanDocument);
+        }
+        return false;
+      },
+      {
+        message: "Documento deve ser um CPF ou CNPJ válido",
+      },
+    ),
 
   couponCode: z.string().optional().or(z.literal("")),
 

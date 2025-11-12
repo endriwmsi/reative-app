@@ -79,7 +79,7 @@ export default function CreateSingleClientForm({
     try {
       const clientData = {
         name: values.name,
-        document: values.document,
+        document: values.document.replace(/\D/g, ""), // Remove formatação antes de enviar
       };
 
       // biome-ignore lint/style/noNonNullAssertion: false positive
@@ -310,15 +310,38 @@ export default function CreateSingleClientForm({
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, "");
 
-                          if (value.length >= 14) {
-                            field.onChange(formatCNPJ(value));
-                          } else {
-                            field.onChange(formatCPF(value));
-                          }
+                          // Armazena apenas números para validação
+                          const formattedValue =
+                            value.length >= 14
+                              ? formatCNPJ(value)
+                              : formatCPF(value);
+
+                          field.onChange(formattedValue);
+                        }}
+                        onBlur={(e) => {
+                          // Ao sair do campo, garantir que apenas números são armazenados para validação
+                          const cleanValue = e.target.value.replace(/\D/g, "");
+                          const formattedValue =
+                            cleanValue.length >= 14
+                              ? formatCNPJ(cleanValue)
+                              : formatCPF(cleanValue);
+                          field.onChange(formattedValue);
+                          field.onBlur();
                         }}
                       />
                     </FormControl>
                     <FormMessage />
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {field.value &&
+                        field.value.replace(/\D/g, "").length >= 11 && (
+                          <span>
+                            {field.value.replace(/\D/g, "").length === 11
+                              ? "CPF"
+                              : "CNPJ"}{" "}
+                            -{field.value.replace(/\D/g, "").length} dígitos
+                          </span>
+                        )}
+                    </div>
                   </FormItem>
                 )}
               />
