@@ -14,6 +14,8 @@ export const getValidDomains = () => {
     "hotmail.com",
     "icloud.com",
     "gsrocket.com.br",
+    "yahoo.com",
+    "yahoo.com.br",
   ];
 
   return domains;

@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { admin } from "better-auth/plugins";
 import { sendEmailAction } from "./actions/auth/send-email.action";
 import { db } from "./db/client";
 import * as schema from "./db/schema";
@@ -91,7 +92,7 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [nextCookies()],
+  plugins: [nextCookies(), admin()],
 });
 
 export type ErrorCode = keyof typeof auth.$ERROR_CODES | "UNKNOWN";

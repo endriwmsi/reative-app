@@ -13,6 +13,7 @@ export async function middleware(req: NextRequest) {
     "/envios",
     "/produtos",
     "/configuracoes",
+    "/usuarios",
   ];
 
   const isLoggedIn = !!sessionCookie;

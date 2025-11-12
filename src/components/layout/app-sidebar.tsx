@@ -6,6 +6,7 @@ import {
   IconSend,
   IconSettings,
   IconTicket,
+  IconUsers,
 } from "@tabler/icons-react";
 import Image from "next/image";
 import type * as React from "react";
@@ -18,6 +19,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { authClient } from "@/lib/auth-client";
+import NavAdmin from "./nav-admin";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 
@@ -130,27 +133,29 @@ const data = {
     //   icon: IconSearch,
     // },
   ],
-  // documents: [
-  //   {
-  //     name: "Data Library",
-  //     url: "#",
-  //     icon: IconDatabase,
-  //   },
-  //   {
-  //     name: "Reports",
-  //     url: "#",
-  //     icon: IconReport,
-  //   },
-  //   {
-  //     name: "Word Assistant",
-  //     url: "#",
-  //     icon: IconFileWord,
-  //   },
-  // ],
+  admin: [
+    {
+      name: "Usuários",
+      url: "/usuarios",
+      icon: IconUsers,
+    },
+    // {
+    //   name: "Reports",
+    //   url: "#",
+    //   icon: IconReport,
+    // },
+    // {
+    //   name: "Word Assistant",
+    //   url: "#",
+    //   icon: IconFileWord,
+    // },
+  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();
+
+  const { data: session } = authClient.useSession();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -186,7 +191,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
+        {session?.user.role === "admin" && <NavAdmin items={data.admin} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       {/* <SidebarFooter>

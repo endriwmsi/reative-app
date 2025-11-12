@@ -14,6 +14,8 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").notNull(),
   phone: text("phone").notNull(),
 
+  role: text("role").default("user"),
+
   image: text("image"),
 
   cpf: varchar("cpf", { length: 14 }).unique(),
