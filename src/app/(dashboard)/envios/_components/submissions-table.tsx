@@ -53,6 +53,7 @@ interface SubmissionData {
   productCategory: string;
   userName: string;
   userEmail: string;
+  userPhone: string;
   canViewClients?: boolean;
   isPaid: boolean;
   paymentDate?: Date | null;
@@ -331,6 +332,7 @@ export default function SubmissionsTable({
           <div className="text-sm flex flex-col">
             <span>{submission.userName}</span>
             <span className="text-primary/50">{submission.userEmail}</span>
+            <span className="text-primary/50">{submission.userPhone}</span>
           </div>
         );
       },

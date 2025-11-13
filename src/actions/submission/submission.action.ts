@@ -201,6 +201,7 @@ export async function getUserSubmissions(userId: string, isAdmin = false) {
           productCategory: product.category,
           userName: user.name,
           userEmail: user.email,
+          userPhone: user.phone,
           isPaid: submission.isPaid,
           paymentDate: submission.paymentDate,
           paymentId: submission.paymentId,

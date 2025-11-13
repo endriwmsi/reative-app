@@ -1,20 +1,42 @@
 import type { Metadata } from "next";
-import UnderConstructionSVG from "@/components/layout/under-construction";
+import { getDashboardMetrics } from "@/actions/dashboard/dashboard-metrics.action";
+import FutureFeaturesCard from "./_components/future-features-card";
+import SectionCards from "./_components/section-cards";
+import TopPartnersPodium from "./_components/top-partners-podium";
+import WelcomeMessage from "./_components/welcome-message";
 
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Ainda em construção",
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const metrics = await getDashboardMetrics();
+
   return (
-    <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] justify-center items-center gap-4">
-      <UnderConstructionSVG className="w-32 h-32 text-muted-foreground" />
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Essa página está em construção!</h1>
-        <p className="text-muted-foreground">
-          Estamos trabalhando para trazer novidades em breve.
-        </p>
+    <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6">
+        <WelcomeMessage />
+
+        <SectionCards metrics={metrics} />
+
+        <div className="grid grid-cols-1 gap-6 px-4 lg:px-6 lg:grid-cols-3">
+          <div className="col-span-2 h-full">
+            <FutureFeaturesCard />
+          </div>
+          <div className="col-span-1 h-full">
+            <TopPartnersPodium />
+          </div>
+        </div>
+
+        {/* <div className="grid grid-cols-1 gap-6 px-4 lg:px-6 lg:grid-cols-2">
+          <PartnersList />
+          <TopInvoicingList />
+        </div>
+
+        <div className="px-4 lg:px-6">
+          <NewPartnersList />
+        </div> */}
       </div>
     </div>
   );

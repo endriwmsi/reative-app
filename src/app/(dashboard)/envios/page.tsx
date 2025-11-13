@@ -33,6 +33,7 @@ type SubmissionData = {
   productCategory: string;
   userName: string;
   userEmail: string;
+  userPhone: string;
   canViewClients?: boolean;
   isPaid: boolean;
   paymentDate?: Date | null;
