@@ -8,11 +8,13 @@ import {
   IconTicket,
   IconUsers,
 } from "@tabler/icons-react";
+import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import type * as React from "react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -23,6 +25,37 @@ import { authClient } from "@/lib/auth-client";
 import NavAdmin from "./nav-admin";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
+
+const headerVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    x: -20,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const footerVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: "easeOut",
+      delay: 0.6,
+    },
+  },
+};
 
 const data = {
   navMain: [
@@ -158,45 +191,57 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = authClient.useSession();
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="/dashboard">
-                {state === "expanded" ? (
-                  <Image
-                    src="/assets/images/logo.svg"
-                    alt="Logo"
-                    width={150}
-                    height={40}
-                    className="h-8 w-auto"
-                  />
-                ) : (
-                  <Image
-                    src="/assets/images/logo-mobile.svg"
-                    alt="Logo"
-                    width={150}
-                    height={40}
-                    className="h-8 w-auto"
-                  />
-                )}
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <motion.div
+          variants={headerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="data-[slot=sidebar-menu-button]:!p-1.5"
+              >
+                <a href="/dashboard">
+                  {state === "expanded" ? (
+                    <Image
+                      src="/assets/images/logo.svg"
+                      alt="Logo"
+                      width={150}
+                      height={40}
+                      className="h-8 w-auto"
+                    />
+                  ) : (
+                    <Image
+                      src="/assets/images/logo-mobile.svg"
+                      alt="Logo"
+                      width={150}
+                      height={40}
+                      className="h-8 w-auto"
+                    />
+                  )}
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </motion.div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         {session?.user.role === "admin" && <NavAdmin items={data.admin} />}
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
-      {/* <SidebarFooter>
-        <NavUser />
-      </SidebarFooter> */}
+      <SidebarFooter>
+        <motion.div
+          variants={footerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <NavSecondary items={data.navSecondary} className="mt-auto" />
+          {/* <NavUser /> */}
+        </motion.div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

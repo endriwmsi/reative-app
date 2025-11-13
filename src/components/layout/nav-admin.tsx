@@ -1,7 +1,8 @@
 "use client";
 
 import type { Icon } from "@tabler/icons-react";
-
+import { motion, type Variants } from "framer-motion";
+import Link from "next/link";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -9,6 +10,45 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.4,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 15,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
+
+const hoverVariants: Variants = {
+  hover: {
+    x: 4,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
+  initial: {
+    x: 0,
+  },
+};
 
 interface NavAdminProps {
   items: {
@@ -23,55 +63,33 @@ const NavAdmin = ({ items }: NavAdminProps) => {
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Admin</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
-            </SidebarMenuButton>
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction
-                  showOnHover
-                  className="data-[state=open]:bg-accent rounded-sm"
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <SidebarGroupLabel>Admin</SidebarGroupLabel>
+        <SidebarMenu>
+          {items.map((item, index) => (
+            <motion.div key={item.name} variants={itemVariants} custom={index}>
+              <SidebarMenuItem>
+                <motion.div
+                  variants={hoverVariants}
+                  initial="initial"
+                  whileHover="hover"
                 >
-                  <IconDots />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-24 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
-              >
-                <DropdownMenuItem>
-                  <IconFolder />
-                  <span>Open</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <IconShare3 />
-                  <span>Share</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
-                  <IconTrash />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu> */}
-          </SidebarMenuItem>
-        ))}
-        {/* <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <IconDots className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem> */}
-      </SidebarMenu>
+                  <SidebarMenuButton asChild>
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </motion.div>
+              </SidebarMenuItem>
+            </motion.div>
+          ))}
+        </SidebarMenu>
+      </motion.div>
     </SidebarGroup>
   );
 };

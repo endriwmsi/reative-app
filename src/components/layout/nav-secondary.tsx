@@ -1,8 +1,9 @@
 "use client";
 
 import type { Icon } from "@tabler/icons-react";
+import { motion, type Variants } from "framer-motion";
+import Link from "next/link";
 import type * as React from "react";
-
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,6 +11,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
+const hoverVariants: Variants = {
+  hover: {
+    x: 4,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
+  initial: {
+    x: 0,
+  },
+};
 
 export function NavSecondary({
   items,
@@ -27,12 +41,18 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
+              <motion.div
+                variants={hoverVariants}
+                initial="initial"
+                whileHover="hover"
+              >
+                <SidebarMenuButton asChild>
+                  <Link href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </motion.div>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

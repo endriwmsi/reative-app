@@ -1,9 +1,10 @@
 "use client";
 
 import { type Icon, IconChevronRight } from "@tabler/icons-react";
+import { motion, type Variants } from "framer-motion";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,6 +20,45 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: "easeOut",
+    },
+  },
+};
+
+const hoverVariants: Variants = {
+  hover: {
+    x: 4,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
+  initial: {
+    x: 0,
+  },
+};
 
 export function NavMain({
   items,
@@ -70,58 +110,99 @@ export function NavMain({
             </Button>
           </SidebarMenuItem> */}
         </SidebarMenu>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              {item.items ? (
-                <Collapsible
-                  open={openItems.includes(item.title)}
-                  onOpenChange={() => toggleItem(item.title)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip={item.title}
-                      isActive={isActive(item.url)}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <SidebarMenu>
+            {items.map((item, index) => (
+              <motion.div
+                key={item.title}
+                variants={itemVariants}
+                custom={index}
+              >
+                <SidebarMenuItem>
+                  {item.items ? (
+                    <Collapsible
+                      open={openItems.includes(item.title)}
+                      onOpenChange={() => toggleItem(item.title)}
                     >
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      <IconChevronRight
-                        className={`ml-auto transition-transform ${openItems.includes(item.title) ? "rotate-90" : ""}`}
-                      />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton
-                            asChild
-                            isActive={isActive(subItem.url)}
+                      <CollapsibleTrigger asChild>
+                        <motion.div
+                          variants={hoverVariants}
+                          initial="initial"
+                          whileHover="hover"
+                        >
+                          <SidebarMenuButton
+                            tooltip={item.title}
+                            isActive={isActive(item.url)}
                           >
-                            <a href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </a>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </Collapsible>
-              ) : (
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  asChild
-                  isActive={isActive(item.url)}
-                >
-                  <a href={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </a>
-                </SidebarMenuButton>
-              )}
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+                            {item.icon && <item.icon />}
+                            <span>{item.title}</span>
+                            <IconChevronRight
+                              className={`ml-auto transition-transform ${openItems.includes(item.title) ? "rotate-90" : ""}`}
+                            />
+                          </SidebarMenuButton>
+                        </motion.div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items.map((subItem, subIndex) => (
+                            <motion.div
+                              key={subItem.title}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{
+                                duration: 0.3,
+                                delay: subIndex * 0.1,
+                                ease: "easeOut",
+                              }}
+                            >
+                              <SidebarMenuSubItem>
+                                <motion.div
+                                  variants={hoverVariants}
+                                  initial="initial"
+                                  whileHover="hover"
+                                >
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isActive(subItem.url)}
+                                  >
+                                    <Link href={subItem.url}>
+                                      <span>{subItem.title}</span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </motion.div>
+                              </SidebarMenuSubItem>
+                            </motion.div>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ) : (
+                    <motion.div
+                      variants={hoverVariants}
+                      initial="initial"
+                      whileHover="hover"
+                    >
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        asChild
+                        isActive={isActive(item.url)}
+                      >
+                        <Link href={item.url}>
+                          {item.icon && <item.icon />}
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </motion.div>
+                  )}
+                </SidebarMenuItem>
+              </motion.div>
+            ))}
+          </SidebarMenu>
+        </motion.div>
       </SidebarGroupContent>
     </SidebarGroup>
   );
