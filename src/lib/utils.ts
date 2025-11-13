@@ -16,6 +16,7 @@ export const getValidDomains = () => {
     "gsrocket.com.br",
     "yahoo.com",
     "yahoo.com.br",
+    "pocred.com.br",
   ];
 
   return domains;
