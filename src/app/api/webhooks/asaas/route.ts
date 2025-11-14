@@ -10,14 +10,23 @@ import { paymentService } from "@/services/asaas/payment-service";
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verificar se é uma requisição de automação via Vercel Protection Bypass
+    // Verificar bypass via header (automação) ou query parameter (webhooks externos)
     const bypassSecret = request.headers.get("x-vercel-protection-bypass");
+    const url = new URL(request.url);
+    const queryBypass = url.searchParams.get("bypass");
+
     const isAutomation =
       bypassSecret === process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    const isWebhookBypass =
+      queryBypass === process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
     if (isAutomation) {
       console.log(
         "[AUTOMATION] Processing payment webhook via protection bypass",
+      );
+    } else if (isWebhookBypass) {
+      console.log(
+        "[WEBHOOK] Processing Asaas webhook via URL bypass parameter",
       );
     }
 

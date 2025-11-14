@@ -27,7 +27,6 @@ export class PaymentService {
         return;
       }
 
-      // Aqui você deve implementar a lógica para atualizar o banco de dados
       // Baseando-se no seu schema existente
       await this.updatePaymentStatus(
         externalReference,
@@ -39,6 +38,25 @@ export class PaymentService {
     } catch (error) {
       console.error("Erro ao processar webhook do Asaas:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Alias para processPaymentWebhook (compatibilidade)
+   */
+  async handleWebhook(
+    payload: AsaasWebhookPayload,
+  ): Promise<{ success: boolean; processed: boolean; error?: string }> {
+    try {
+      await this.processPaymentWebhook(payload);
+      return { success: true, processed: true };
+    } catch (error) {
+      console.error("Erro ao processar webhook:", error);
+      return {
+        success: false,
+        processed: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 
