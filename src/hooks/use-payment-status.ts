@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { checkPaymentStatus } from "@/actions/payment/payment.action";
 
 interface UsePaymentStatusOptions {
   paymentId: string;
   enabled?: boolean;
   onPaymentConfirmed?: () => void;
   onStatusUpdate?: (status: string, isPaid: boolean) => void;
+  autoStart?: boolean;
 }
 
 interface PaymentStatusResult {
@@ -20,14 +20,20 @@ interface PaymentStatusResult {
   maxChecks: number;
   nextCheckIn: number;
   manualCheck: () => Promise<void>;
+  startChecking: () => void;
   stopChecking: () => void;
 }
 
+/**
+ * Hook melhorado para verificar status de pagamento
+ * Funciona independente de modal estar aberto ou não
+ */
 export function usePaymentStatus({
   paymentId,
   enabled = true,
   onPaymentConfirmed,
   onStatusUpdate,
+  autoStart = true,
 }: UsePaymentStatusOptions): PaymentStatusResult {
   const [status, setStatus] = useState<string>("PENDING");
   const [isPaid, setIsPaid] = useState<boolean>(false);
@@ -36,137 +42,139 @@ export function usePaymentStatus({
   const [checkCount, setCheckCount] = useState<number>(0);
   const [nextCheckIn, setNextCheckIn] = useState<number>(0);
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isEnabledRef = useRef(enabled);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Intervalos progressivos (em segundos) - muito mais conservadores
-  const intervals = [10, 20, 30, 60, 120]; // 10s, 20s, 30s, 1min, 2min
-  const maxChecks = 10; // Máximo 10 verificações (aproximadamente 15-20 minutos)
+  // Intervalos progressivos mais conservadores
+  const intervals = [5, 10, 15, 30, 60, 120]; // 5s, 10s, 15s, 30s, 1min, 2min
+  const maxChecks = 15; // Máximo 15 verificações
 
   const checkPayment = useCallback(async () => {
-    if (!paymentId || isChecking || isPaid) return;
+    if (!paymentId || isPaid || !enabled) return;
 
     setIsChecking(true);
 
     try {
-      const result = await checkPaymentStatus(paymentId);
+      console.log(
+        `Verificando pagamento ${paymentId} (tentativa ${checkCount + 1}/${maxChecks})`,
+      );
 
-      if (result.success && result.data) {
-        const newStatus = result.data.status;
-        const newIsPaid = result.data.isPaid;
+      const response = await fetch(`/api/payments/${paymentId}/status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        setStatus(newStatus);
-        setIsPaid(newIsPaid);
-        setLastChecked(new Date());
-        setCheckCount((prev) => prev + 1);
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
+      }
 
-        // Callbacks
-        onStatusUpdate?.(newStatus, newIsPaid);
+      const data = await response.json();
+      const { status: newStatus, isPaid: newIsPaid } = data;
 
-        if (newIsPaid && !isPaid) {
-          onPaymentConfirmed?.();
-          toast.success("🎉 Pagamento confirmado!", {
-            description: "Seus envios foram processados com sucesso.",
-            duration: 5000,
-          });
-        } else if (newStatus !== status) {
-          // Status mudou mas ainda não foi pago
-          toast.info(`Status atualizado: ${getStatusLabel(newStatus)}`);
-        }
+      setStatus(newStatus);
+      setIsPaid(newIsPaid);
+      setLastChecked(new Date());
+      setCheckCount((prev) => prev + 1);
 
-        return newIsPaid;
-      } else {
-        console.error("Erro ao verificar pagamento:", result.message);
-        return false;
+      onStatusUpdate?.(newStatus, newIsPaid);
+
+      if (newIsPaid) {
+        console.log(`Pagamento ${paymentId} confirmado!`);
+        toast.success("Pagamento confirmado!");
+        onPaymentConfirmed?.();
       }
     } catch (error) {
-      console.error("Erro ao verificar pagamento:", error);
-      return false;
+      console.error("Erro ao verificar status do pagamento:", error);
+      toast.error("Erro ao verificar status do pagamento");
     } finally {
       setIsChecking(false);
     }
   }, [
     paymentId,
-    isChecking,
     isPaid,
-    status,
+    enabled,
+    checkCount,
     onPaymentConfirmed,
     onStatusUpdate,
   ]);
 
-  const scheduleNextCheck = useCallback(
-    (currentCheckCount: number) => {
-      if (currentCheckCount >= maxChecks || !isEnabledRef.current) {
-        setNextCheckIn(0);
-        return;
+  const scheduleNextCheck = useCallback(() => {
+    if (isPaid || checkCount >= maxChecks || !enabled) {
+      return;
+    }
+
+    const intervalIndex = Math.min(checkCount, intervals.length - 1);
+    const interval = intervals[intervalIndex] * 1000;
+
+    setNextCheckIn(intervals[intervalIndex]);
+
+    // Countdown para próxima verificação
+    let countdown = intervals[intervalIndex];
+    countdownRef.current = setInterval(() => {
+      countdown -= 1;
+      setNextCheckIn(countdown);
+
+      if (countdown <= 0 && countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
+    }, 1000);
 
-      // Determinar intervalo baseado no número de verificações
-      const intervalIndex = Math.min(currentCheckCount, intervals.length - 1);
-      const intervalSeconds = intervals[intervalIndex];
+    // Agendar próxima verificação
+    timeoutRef.current = setTimeout(() => {
+      if (!isPaid && checkCount < maxChecks && enabled) {
+        checkPayment();
+        scheduleNextCheck();
+      }
+    }, interval);
+  }, [checkCount, isPaid, enabled, checkPayment]);
 
-      // Iniciar countdown
-      setNextCheckIn(intervalSeconds);
+  const startChecking = useCallback(() => {
+    if (isPaid || !paymentId) return;
 
-      timeoutRef.current = setTimeout(async () => {
-        const paymentConfirmed = await checkPayment();
-
-        if (!paymentConfirmed && isEnabledRef.current) {
-          scheduleNextCheck(currentCheckCount + 1);
-        }
-      }, intervalSeconds * 1000);
-    },
-    [checkPayment],
-  );
-
-  const manualCheck = useCallback(async () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    await checkPayment();
-
-    // Reiniciar o ciclo de verificações automáticas se ainda não foi pago
-    if (!isPaid && enabled) {
-      scheduleNextCheck(checkCount);
-    }
-  }, [checkPayment, isPaid, enabled, checkCount, scheduleNextCheck]);
+    console.log(`Iniciando verificação de pagamento: ${paymentId}`);
+    setCheckCount(0);
+    checkPayment();
+    scheduleNextCheck();
+  }, [paymentId, isPaid, checkPayment, scheduleNextCheck]);
 
   const stopChecking = useCallback(() => {
-    isEnabledRef.current = false;
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    console.log("Parando verificação de pagamento");
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-  }, []);
 
-  // Iniciar verificações automáticas
-  useEffect(() => {
-    isEnabledRef.current = enabled;
-
-    if (enabled && paymentId && !isPaid) {
-      // Agendar primeira verificação (sem verificação imediata)
-      scheduleNextCheck(0);
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
     }
 
-    return () => {
-      stopChecking();
-    };
-  }, [enabled, paymentId, isPaid, scheduleNextCheck, stopChecking]);
+    setIsChecking(false);
+    setNextCheckIn(0);
+  }, []);
 
-  // Cleanup ao desmontar
+  const manualCheck = useCallback(async () => {
+    stopChecking();
+    await checkPayment();
+    if (!isPaid && checkCount < maxChecks) {
+      scheduleNextCheck();
+    }
+  }, [checkPayment, isPaid, checkCount, stopChecking, scheduleNextCheck]);
+
+  // Auto iniciar verificação quando habilitado
   useEffect(() => {
-    return () => {
+    if (enabled && autoStart && paymentId && !isPaid) {
+      startChecking();
+    } else if (!enabled) {
       stopChecking();
-    };
-  }, [stopChecking]);
+    }
+
+    return () => stopChecking();
+  }, [enabled, autoStart, paymentId, isPaid, startChecking, stopChecking]);
 
   return {
     status,
@@ -177,19 +185,7 @@ export function usePaymentStatus({
     maxChecks,
     nextCheckIn,
     manualCheck,
+    startChecking,
     stopChecking,
   };
-}
-
-function getStatusLabel(status: string): string {
-  const statusLabels: Record<string, string> = {
-    PENDING: "Pendente",
-    AWAITING_PAYMENT: "Aguardando Pagamento",
-    RECEIVED: "Confirmado",
-    OVERDUE: "Vencido",
-    CANCELLED: "Cancelado",
-    REFUNDED: "Reembolsado",
-  };
-
-  return statusLabels[status] || status;
 }

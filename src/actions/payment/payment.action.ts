@@ -7,7 +7,8 @@ import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { submission } from "@/db/schema/submission";
 import { user } from "@/db/schema/user";
-import { AsaasAPI, type AsaasCustomer, asaas } from "@/lib/asaas";
+import { asaasService } from "@/services/asaas/asaas-service";
+import type { AsaasCustomer } from "@/services/asaas/asaas-types";
 import { createCommissionEarnings } from "../commission/commission-earnings.action";
 
 export interface CreatePaymentData {
@@ -128,7 +129,7 @@ export async function createPaymentForSubmissions(
     // Criar ou obter customer no Asaas
     let customer: AsaasCustomer;
     try {
-      customer = await asaas.getOrCreateCustomer({
+      customer = await asaasService.getOrCreateCustomer({
         name: userInfo.name || "Usuário",
         email: userInfo.email || "",
         cpfCnpj: document,
@@ -184,7 +185,7 @@ export async function createPaymentForSubmissions(
       externalReference = fullRef.length <= 50 ? fullRef : externalReference;
     }
 
-    const payment = await asaas.createPixPayment(
+    const payment = await asaasService.createPixPayment(
       customerId,
       data.totalAmount,
       description,
