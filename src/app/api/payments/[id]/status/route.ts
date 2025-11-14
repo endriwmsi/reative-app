@@ -6,9 +6,10 @@ import { paymentService } from "@/services/asaas/payment-service";
 /**
  * Endpoint para consultar o status de um pagamento específico
  * GET /api/payments/[id]/status
+ * Suporta bypass de proteção Vercel para automação
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -19,6 +20,15 @@ export async function GET(
         { error: "ID do pagamento é obrigatório" },
         { status: 400 },
       );
+    }
+
+    // Verificar se é uma requisição de automação
+    const bypassSecret = request.headers.get("x-vercel-protection-bypass");
+    const isAutomation =
+      bypassSecret === process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+    if (isAutomation) {
+      console.log(`[AUTOMATION] Checking payment status for ID: ${paymentId}`);
     }
 
     // Verificar se o pagamento existe e obter informações

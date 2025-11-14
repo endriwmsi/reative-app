@@ -6,9 +6,21 @@ import { paymentService } from "@/services/asaas/payment-service";
 /**
  * Webhook para receber notificações do Asaas sobre mudanças no status de pagamento
  * Este endpoint é chamado automaticamente pelo Asaas quando há alterações nos pagamentos
+ * Suporta bypass de proteção Vercel para automação e webhooks externos
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verificar se é uma requisição de automação via Vercel Protection Bypass
+    const bypassSecret = request.headers.get("x-vercel-protection-bypass");
+    const isAutomation =
+      bypassSecret === process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+    if (isAutomation) {
+      console.log(
+        "[AUTOMATION] Processing payment webhook via protection bypass",
+      );
+    }
+
     // Verificar se a requisição tem o token de autenticação correto
     const authHeader = request.headers.get("authorization");
     const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
@@ -21,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar token de autenticação (opcional, mas recomendado)
+    // Validar token de autenticação (principal método para webhooks do Asaas)
     if (authHeader !== `Bearer ${expectedToken}`) {
       console.warn("Tentativa de acesso ao webhook com token inválido");
       return NextResponse.json({ error: "Token inválido" }, { status: 401 });

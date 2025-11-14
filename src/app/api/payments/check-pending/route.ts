@@ -5,11 +5,21 @@ import { paymentService } from "@/services/asaas/payment-service";
 /**
  * Endpoint para verificar pagamentos pendentes em lote
  * POST /api/payments/check-pending
+ * Suporta bypass de proteção Vercel para automação
  *
  * Body: { paymentIds: string[] }
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verificar se é uma requisição de automação
+    const bypassSecret = request.headers.get("x-vercel-protection-bypass");
+    const isAutomation =
+      bypassSecret === process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+    if (isAutomation) {
+      console.log("[AUTOMATION] Batch checking pending payments");
+    }
+
     const body = await request.json();
     const { paymentIds } = body;
 
