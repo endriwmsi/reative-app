@@ -76,13 +76,16 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         ),
       );
 
-    // 3. Parceiros indicados - pessoas que se cadastraram com meu código
+    // 3. Parceiros indicados - pessoas que se cadastraram com meu código E fizeram vendas pagas
     const parceirosIndicadosResult = await db
       .select({
-        count: count(),
+        count: count(sql`DISTINCT ${user.id}`),
       })
       .from(user)
-      .where(eq(user.referredBy, userReferralCode));
+      .innerJoin(submission, eq(submission.userId, user.id))
+      .where(
+        and(eq(user.referredBy, userReferralCode), eq(submission.isPaid, true)),
+      );
 
     // 4. Total de faturamento - soma de todas as vendas pagas feitas pelos meus indicados
     const totalFaturamentoResult = await db
@@ -132,17 +135,19 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         ),
       );
 
-    // Parceiros indicados no mês anterior
+    // Parceiros indicados no mês anterior que fizeram vendas pagas
     const parceirosIndicadosMesAnteriorResult = await db
       .select({
-        count: count(),
+        count: count(sql`DISTINCT ${user.id}`),
       })
       .from(user)
+      .innerJoin(submission, eq(submission.userId, user.id))
       .where(
         and(
           eq(user.referredBy, userReferralCode),
-          gte(user.createdAt, lastMonth),
-          sql`${user.createdAt} < ${currentMonth}`,
+          eq(submission.isPaid, true),
+          gte(submission.createdAt, lastMonth),
+          sql`${submission.createdAt} < ${currentMonth}`,
         ),
       );
 
