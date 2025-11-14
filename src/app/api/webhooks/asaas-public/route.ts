@@ -182,3 +182,19 @@ export async function GET() {
     },
   });
 }
+
+/**
+ * Método OPTIONS para suporte a CORS e preflight requests
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "Content-Type, asaas-access-token, x-forwarded-for, user-agent",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}
