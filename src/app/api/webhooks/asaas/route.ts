@@ -30,22 +30,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar se a requisição tem o token de autenticação correto
-    const authHeader = request.headers.get("authorization");
+    // Verificar autenticação via header asaas-access-token (conforme documentação do Asaas)
+    const asaasAccessToken = request.headers.get("asaas-access-token");
     const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
 
+    // Se token não configurado, permitir acesso mas logar warning
     if (!expectedToken) {
-      console.error("ASAAS_WEBHOOK_TOKEN não configurado");
-      return NextResponse.json(
-        { error: "Webhook não configurado" },
-        { status: 500 },
+      console.warn(
+        "[WEBHOOK] ASAAS_WEBHOOK_TOKEN não configurado - webhook funcionando em modo development",
       );
-    }
-
-    // Validar token de autenticação (principal método para webhooks do Asaas)
-    if (authHeader !== `Bearer ${expectedToken}`) {
-      console.warn("Tentativa de acesso ao webhook com token inválido");
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    } else {
+      // Validar token de autenticação conforme documentação do Asaas
+      if (asaasAccessToken !== expectedToken) {
+        console.warn("[WEBHOOK] Token inválido na requisição");
+        return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+      }
+      console.log("[WEBHOOK] Token validado com sucesso");
     }
 
     // Ler o corpo da requisição

@@ -18,24 +18,24 @@ export async function POST(request: NextRequest) {
 
     console.log(`[WEBHOOK] Request from IP: ${clientIP}`);
 
-    // Verificar se a requisição tem o token de autenticação correto
-    const authHeader = request.headers.get("authorization");
+    // Verificar autenticação via header asaas-access-token (conforme documentação do Asaas)
+    const asaasAccessToken = request.headers.get("asaas-access-token");
     const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
 
+    // Se token não configurado, permitir acesso mas logar warning (para desenvolvimento)
     if (!expectedToken) {
-      console.error("ASAAS_WEBHOOK_TOKEN não configurado");
-      return NextResponse.json(
-        { error: "Webhook não configurado" },
-        { status: 500 },
-      );
-    }
-
-    // Validar token de autenticação (principal método para webhooks do Asaas)
-    if (authHeader !== `Bearer ${expectedToken}`) {
       console.warn(
-        `[WEBHOOK] Tentativa de acesso com token inválido do IP: ${clientIP}`,
+        "[WEBHOOK] ASAAS_WEBHOOK_TOKEN não configurado - webhook funcionando em modo development",
       );
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    } else {
+      // Validar token de autenticação conforme documentação do Asaas
+      if (asaasAccessToken !== expectedToken) {
+        console.warn(
+          `[WEBHOOK] Token inválido do IP: ${clientIP}. Expected: ${expectedToken?.substring(0, 8)}..., Received: ${asaasAccessToken?.substring(0, 8) || "none"}...`,
+        );
+        return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+      }
+      console.log("[WEBHOOK] Token validado com sucesso");
     }
 
     // Ler o corpo da requisição
