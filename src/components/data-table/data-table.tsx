@@ -3,6 +3,7 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type FilterFn,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -30,6 +31,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   searchPlaceholder?: string;
+  globalFilterFn?: FilterFn<TData>;
 }
 
 export function DataTable<TData, TValue>({
@@ -37,6 +39,7 @@ export function DataTable<TData, TValue>({
   data,
   searchKey,
   searchPlaceholder,
+  globalFilterFn,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -45,6 +48,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
 
   const table = useReactTable({
     data,
@@ -57,11 +61,14 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: globalFilterFn || "includesString",
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
 
@@ -71,6 +78,7 @@ export function DataTable<TData, TValue>({
         table={table}
         searchKey={searchKey}
         searchPlaceholder={searchPlaceholder}
+        useGlobalFilter={!!globalFilterFn}
       />
       <div className="overflow-hidden rounded-md border">
         <Table>

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import { CreditCard, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -66,6 +66,22 @@ interface SubmissionsTableProps {
   userId: string;
   isAdmin: boolean;
 }
+
+// Função de filtro personalizada para buscar por título, nome do usuário e email
+const customGlobalFilter = (
+  row: Row<SubmissionData>,
+  _columnId: string,
+  filterValue: string,
+) => {
+  const submission = row.original;
+  const searchValue = filterValue.toLowerCase();
+
+  return (
+    submission.title.toLowerCase().includes(searchValue) ||
+    submission.userName.toLowerCase().includes(searchValue) ||
+    submission.userEmail.toLowerCase().includes(searchValue)
+  );
+};
 
 export default function SubmissionsTable({
   submissions,
@@ -527,8 +543,8 @@ export default function SubmissionsTable({
           <DataTable
             columns={columns}
             data={submissions}
-            searchKey="title"
-            searchPlaceholder="Buscar por nome do cliente..."
+            globalFilterFn={customGlobalFilter}
+            searchPlaceholder="Buscar por nome, email ou título..."
           />
         </CardContent>
       </Card>
