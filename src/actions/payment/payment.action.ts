@@ -263,10 +263,8 @@ export async function refreshPaymentData(paymentId: string) {
     console.log("=== Refresh Payment Data Debug ===");
     console.log("Payment ID:", paymentId);
 
-    const asaasApi = new AsaasAPI();
-
     // Buscar dados básicos do pagamento
-    const payment = await asaasApi.getPayment(paymentId);
+    const payment = await asaasService.getPayment(paymentId);
     console.log("Payment data from Asaas:", payment);
 
     if (!payment) {
@@ -276,7 +274,7 @@ export async function refreshPaymentData(paymentId: string) {
     let pixData = { qrCode: "", pixCopyPaste: "" };
 
     try {
-      const billingInfo = await asaasApi.getPaymentBillingInfo(paymentId);
+      const billingInfo = await asaasService.getPaymentBillingInfo(paymentId);
 
       if (billingInfo.pix) {
         pixData = {
@@ -324,8 +322,7 @@ export async function checkPaymentStatus(paymentId: string) {
       return { success: false, message: "Não autorizado" };
     }
 
-    const asaasApi = new AsaasAPI();
-    const payment = await asaasApi.getPayment(paymentId);
+    const payment = await asaasService.getPayment(paymentId);
 
     if (!payment) {
       return { success: false, message: "Pagamento não encontrado" };
