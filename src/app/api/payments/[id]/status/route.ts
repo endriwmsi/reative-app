@@ -9,10 +9,10 @@ import { paymentService } from "@/services/asaas/payment-service";
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const paymentId = params.id;
+    const { id: paymentId } = await params;
 
     if (!paymentId) {
       return NextResponse.json(
