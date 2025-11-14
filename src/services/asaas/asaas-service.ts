@@ -23,7 +23,7 @@ export class AsaasService {
     const apiKeyFromEnv = process.env.ASAAS_API_KEY || "";
     this.apiKey = apiKeyFromEnv.startsWith("$")
       ? apiKeyFromEnv
-      : `$aact_${process.env.ASAAS_ENVIRONMENT === "production" ? "prod" : "test"}_${apiKeyFromEnv}`;
+      : `$aact_${process.env.ASAAS_ENVIRONMENT === "production" ? "prod" : "hmlg"}_${apiKeyFromEnv}`;
   }
 
   private async request<T>(
