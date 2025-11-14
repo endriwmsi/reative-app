@@ -18,6 +18,7 @@ export const getValidDomains = () => {
     "yahoo.com.br",
     "pocred.com.br",
     "rasolucoesfinanceira.com.br",
+    "consulenzaconsultoria.com.br",
   ];
 
   return domains;
