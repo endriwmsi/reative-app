@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { checkPaymentStatus } from "@/actions/payment/payment.action";
@@ -23,12 +24,33 @@ interface PaymentStatusResult {
   stopChecking: () => void;
 }
 
+function getStatusLabel(status: string): string {
+  const statusLabels = {
+    PENDING: "Pendente",
+    AWAITING_PAYMENT: "Aguardando Pagamento",
+    RECEIVED: "Recebido",
+    CONFIRMED: "Confirmado",
+    OVERDUE: "Vencido",
+    REFUNDED: "Reembolsado",
+    RECEIVED_IN_CASH: "Recebido em Dinheiro",
+    REFUND_REQUESTED: "Reembolso Solicitado",
+    CHARGEBACK_REQUESTED: "Estorno Solicitado",
+    CHARGEBACK_DISPUTE: "Disputa de Estorno",
+    AWAITING_CHARGEBACK_REVERSAL: "Aguardando Reversão",
+    DUNNING_REQUESTED: "Cobrança Solicitada",
+    DUNNING_RECEIVED: "Cobrança Recebida",
+    AWAITING_RISK_ANALYSIS: "Análise de Risco",
+  };
+  return statusLabels[status as keyof typeof statusLabels] || status;
+}
+
 export function usePaymentStatus({
   paymentId,
   enabled = true,
   onPaymentConfirmed,
   onStatusUpdate,
 }: UsePaymentStatusOptions): PaymentStatusResult {
+  const router = useRouter();
   const [status, setStatus] = useState<string>("PENDING");
   const [isPaid, setIsPaid] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(false);
@@ -38,6 +60,7 @@ export function usePaymentStatus({
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const isEnabledRef = useRef(enabled);
 
   // Intervalos progressivos (em segundos) - mais conservadores com webhook
@@ -55,19 +78,54 @@ export function usePaymentStatus({
       if (result.success && result.data) {
         const newStatus = result.data.status;
         const newIsPaid = result.data.isPaid;
+        const isWebhookUpdate = result.data.isWebhookUpdate || false;
+
+        // Detectar mudanças reais
+        const statusChanged = status !== newStatus;
+        const paidChanged = isPaid !== newIsPaid;
 
         setStatus(newStatus);
         setIsPaid(newIsPaid);
         setLastChecked(new Date());
         setCheckCount((prev) => prev + 1);
 
+        console.log(`[usePaymentStatus] Status check result:`, {
+          newStatus,
+          newIsPaid,
+          isWebhookUpdate,
+          statusChanged,
+          paidChanged,
+        });
+
         // Callbacks
         onStatusUpdate?.(newStatus, newIsPaid);
 
         if (newIsPaid && !isPaid) {
+          // Pagamento confirmado!
+          const toastMessage = isWebhookUpdate
+            ? "🎉 Pagamento confirmado automaticamente!"
+            : "✅ Pagamento confirmado!";
+
+          toast.success(toastMessage, {
+            description: "Suas submissões foram atualizadas.",
+            duration: 5000,
+          });
+
+          // Force refresh para garantir sincronização
+          try {
+            router.refresh();
+            console.log(
+              "[usePaymentStatus] Page refreshed after payment confirmation",
+            );
+          } catch (refreshError) {
+            console.error(
+              "[usePaymentStatus] Error refreshing page:",
+              refreshError,
+            );
+          }
+
           onPaymentConfirmed?.();
-          // Toast será exibido pelo modal, não aqui para evitar duplicação
-        } else if (newStatus !== status) {
+        } else if (statusChanged && !newIsPaid) {
           // Status mudou mas ainda não foi pago
           toast.info(`Status atualizado: ${getStatusLabel(newStatus)}`, {
             description: "Verificação automática em andamento",
@@ -91,6 +149,7 @@ export function usePaymentStatus({
     isChecking,
     isPaid,
     status,
+    router,
     onPaymentConfirmed,
     onStatusUpdate,
   ]);
@@ -99,6 +158,11 @@ export function usePaymentStatus({
     (currentCheckCount: number) => {
       if (currentCheckCount >= maxChecks || !isEnabledRef.current) {
         setNextCheckIn(0);
+        toast.info("Verificações automáticas concluídas", {
+          description:
+            "O pagamento ainda será confirmado automaticamente via webhook quando processado.",
+          duration: 5000,
+        });
         return;
       }
 
@@ -110,7 +174,24 @@ export function usePaymentStatus({
       const webhookAwareInterval = intervalSeconds * 1.5; // 50% mais lento
 
       // Iniciar countdown
-      setNextCheckIn(Math.floor(webhookAwareInterval));
+      let remainingTime = Math.floor(webhookAwareInterval);
+      setNextCheckIn(remainingTime);
+
+      // Limpar countdown anterior se existir
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+
+      // Countdown visual atualizado a cada segundo
+      countdownRef.current = setInterval(() => {
+        remainingTime -= 1;
+        setNextCheckIn(remainingTime);
+
+        if (remainingTime <= 0 && countdownRef.current) {
+          clearInterval(countdownRef.current);
+          countdownRef.current = null;
+        }
+      }, 1000);
 
       timeoutRef.current = setTimeout(async () => {
         const paymentConfirmed = await checkPayment();
@@ -119,57 +200,74 @@ export function usePaymentStatus({
           scheduleNextCheck(currentCheckCount + 1);
         }
       }, webhookAwareInterval * 1000);
+
+      console.log(
+        `[usePaymentStatus] Next check scheduled in ${webhookAwareInterval}s (check ${currentCheckCount + 1}/${maxChecks})`,
+      );
     },
     [checkPayment],
   );
 
   const manualCheck = useCallback(async () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    if (isChecking) {
+      console.log("[usePaymentStatus] Check already in progress");
+      return;
     }
 
-    await checkPayment();
+    console.log("[usePaymentStatus] Manual check triggered");
+    toast.info("Verificando pagamento...", {
+      description: "Aguarde um momento.",
+      duration: 2000,
+    });
 
-    // Reiniciar o ciclo de verificações automáticas se ainda não foi pago
-    if (!isPaid && enabled) {
-      scheduleNextCheck(checkCount);
+    const paymentConfirmed = await checkPayment();
+
+    if (!paymentConfirmed && !isPaid) {
+      toast.info("Pagamento ainda não confirmado", {
+        description: "Continuaremos verificando automaticamente.",
+        duration: 3000,
+      });
     }
-  }, [checkPayment, isPaid, enabled, checkCount, scheduleNextCheck]);
+  }, [checkPayment, isChecking, isPaid]);
 
   const stopChecking = useCallback(() => {
+    console.log("[usePaymentStatus] Stopping payment status checks");
     isEnabledRef.current = false;
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setNextCheckIn(0);
   }, []);
 
-  // Iniciar verificações automáticas
+  // Atualizar ref quando enabled mudar
   useEffect(() => {
     isEnabledRef.current = enabled;
+  }, [enabled]);
 
+  // Iniciar verificações quando ativado
+  useEffect(() => {
     if (enabled && paymentId && !isPaid) {
-      // Agendar primeira verificação (sem verificação imediata)
-      scheduleNextCheck(0);
+      // Primeira verificação imediata após 3 segundos
+      const initialTimeout = setTimeout(() => {
+        checkPayment().then((confirmed) => {
+          if (!confirmed && isEnabledRef.current) {
+            scheduleNextCheck(0);
+          }
+        });
+      }, 3000);
+
+      return () => clearTimeout(initialTimeout);
     }
+  }, [enabled, paymentId, isPaid, checkPayment, scheduleNextCheck]);
 
-    return () => {
-      stopChecking();
-    };
-  }, [enabled, paymentId, isPaid, scheduleNextCheck, stopChecking]);
-
-  // Cleanup ao desmontar
+  // Cleanup ao desmontar componente
   useEffect(() => {
     return () => {
-      stopChecking();
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
     };
-  }, [stopChecking]);
+  }, []);
 
   return {
     status,
@@ -182,17 +280,4 @@ export function usePaymentStatus({
     manualCheck,
     stopChecking,
   };
-}
-
-function getStatusLabel(status: string): string {
-  const statusLabels: Record<string, string> = {
-    PENDING: "Pendente",
-    AWAITING_PAYMENT: "Aguardando Pagamento",
-    RECEIVED: "Confirmado",
-    OVERDUE: "Vencido",
-    CANCELLED: "Cancelado",
-    REFUNDED: "Reembolsado",
-  };
-
-  return statusLabels[status] || status;
 }

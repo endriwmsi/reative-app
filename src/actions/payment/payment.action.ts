@@ -147,7 +147,10 @@ export async function checkPaymentStatus(paymentId: string) {
       }
     }
 
+    // Revalidar múltiplas rotas para garantir sincronização
     revalidatePath("/envios");
+    revalidatePath("/dashboard");
+    revalidatePath("/");
 
     return {
       success: true,
@@ -156,6 +159,7 @@ export async function checkPaymentStatus(paymentId: string) {
         status: result.data?.status || "PENDING",
         isPaid: result.data?.isPaid || false,
         confirmedDate: result.data?.confirmedDate,
+        isWebhookUpdate: false, // Para distinguir de atualizações via webhook
       },
     };
   } catch (error) {
@@ -167,7 +171,7 @@ export async function checkPaymentStatus(paymentId: string) {
   }
 }
 
-export async function refreshPaymentData(paymentId: string) {
+export async function getPaymentDetails(paymentId: string) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -196,7 +200,42 @@ export async function refreshPaymentData(paymentId: string) {
   }
 }
 
-export async function getPaymentData(submissionIds: string[]) {
+export async function notifyPaymentUpdate(
+  paymentId: string,
+  status: string,
+  isPaid: boolean,
+  source: "webhook" | "manual" = "webhook",
+) {
+  try {
+    console.log(
+      `[PaymentAction] Notifying payment update: ${paymentId}, status: ${status}, isPaid: ${isPaid}, source: ${source}`,
+    );
+
+    // Revalidar todas as rotas relacionadas
+    revalidatePath("/envios");
+    revalidatePath("/dashboard");
+    revalidatePath("/");
+
+    return {
+      success: true,
+      data: {
+        paymentId,
+        status,
+        isPaid,
+        source,
+        timestamp: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error("[PaymentAction] Error notifying payment update:", error);
+    return {
+      success: false,
+      error: "Erro ao notificar atualização",
+    };
+  }
+}
+
+export async function getSubmissionsForPayment(submissionIds: string[]) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
