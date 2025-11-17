@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { checkPaymentStatus } from "@/actions/payment/payment.action";
-import { usePaymentBoost } from "./use-payment-boost";
 
 interface UsePaymentStatusOptions {
   paymentId: string;
@@ -41,25 +40,9 @@ export function usePaymentStatus({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isEnabledRef = useRef(enabled);
 
-  // Hook para boost temporário após webhook
-  const { isBoosted } = usePaymentBoost({
-    paymentId,
-    onBoostTriggered: () => {
-      console.log(
-        "[PaymentStatus] Boost triggered - will check more frequently",
-      );
-      // Forçar uma verificação imediata quando boost é ativado
-      if (!isPaid && enabled) {
-        checkPayment();
-      }
-    },
-  });
-
-  // Intervalos normais vs intervalos com boost
-  const normalIntervals = [10, 20, 30, 60]; // 10s, 20s, 30s, 60s
-  const boostedIntervals = [2, 3, 5, 8]; // 2s, 3s, 5s, 8s (muito mais rápido)
-  const intervals = isBoosted ? boostedIntervals : normalIntervals;
-  const maxChecks = isBoosted ? 12 : 8; // Mais verificações durante boost
+  // Intervalos progressivos (em segundos) - mais conservadores com webhook
+  const intervals = [30, 60, 120, 300]; // 30s, 1min, 2min, 5min
+  const maxChecks = 6; // Máximo 6 verificações (aproximadamente 15 minutos)
 
   const checkPayment = useCallback(async () => {
     if (!paymentId || isChecking || isPaid) return;
@@ -123,8 +106,11 @@ export function usePaymentStatus({
       const intervalIndex = Math.min(currentCheckCount, intervals.length - 1);
       const intervalSeconds = intervals[intervalIndex];
 
+      // Com webhook ativo, verificar menos frequentemente
+      const webhookAwareInterval = intervalSeconds * 1.5; // 50% mais lento
+
       // Iniciar countdown
-      setNextCheckIn(Math.floor(intervalSeconds));
+      setNextCheckIn(Math.floor(webhookAwareInterval));
 
       timeoutRef.current = setTimeout(async () => {
         const paymentConfirmed = await checkPayment();
@@ -132,9 +118,9 @@ export function usePaymentStatus({
         if (!paymentConfirmed && isEnabledRef.current) {
           scheduleNextCheck(currentCheckCount + 1);
         }
-      }, intervalSeconds * 1000);
+      }, webhookAwareInterval * 1000);
     },
-    [checkPayment, intervals, maxChecks],
+    [checkPayment],
   );
 
   const manualCheck = useCallback(async () => {

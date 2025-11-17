@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 interface WebhookStatusIndicatorProps {
   isPaid: boolean;
   isChecking: boolean;
+  lastChecked?: Date | null;
   className?: string;
 }
 
 export function WebhookStatusIndicator({
   isPaid,
   isChecking,
+  lastChecked,
   className = "",
 }: WebhookStatusIndicatorProps) {
   if (isPaid) {
@@ -42,6 +44,11 @@ export function WebhookStatusIndicator({
     <Badge variant="outline" className={`${className}`}>
       <Clock className="h-3 w-3 mr-1" />
       Webhook Ativo
+      {lastChecked && (
+        <span className="ml-1 text-xs opacity-70">
+          ({lastChecked.toLocaleTimeString()})
+        </span>
+      )}
     </Badge>
   );
 }
