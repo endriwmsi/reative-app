@@ -6,8 +6,8 @@ import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { submission } from "@/db/schema/submission";
-import { user } from "@/db/schema/user";
-import { AsaasAPI, type AsaasCustomer, asaas } from "@/lib/asaas";
+import { PaymentService } from "@/services";
+import type { CreatePaymentDTO } from "@/types/payment";
 import { createCommissionEarnings } from "../commission/commission-earnings.action";
 
 export interface CreatePaymentData {
@@ -27,6 +27,8 @@ export interface PaymentResult {
   error?: string;
 }
 
+const paymentService = new PaymentService();
+
 export async function createPaymentForSubmissions(
   data: CreatePaymentData,
 ): Promise<PaymentResult> {
@@ -43,272 +45,42 @@ export async function createPaymentForSubmissions(
       };
     }
 
-    // Buscar as submissions selecionadas
-    const submissions = await db
-      .select({
-        id: submission.id,
-        title: submission.title,
-        totalAmount: submission.totalAmount,
-        userId: submission.userId,
-        isPaid: submission.isPaid,
-      })
-      .from(submission)
-      .where(
-        and(
-          inArray(submission.id, data.submissionIds),
-          eq(submission.userId, session.user.id),
-          eq(submission.isPaid, false), // Apenas submissions não pagas
-        ),
-      );
-
-    if (submissions.length === 0) {
-      return {
-        success: false,
-        message: "Nenhuma submissão válida encontrada",
-        error: "NO_SUBMISSIONS",
-      };
-    }
-
-    // Limitar número máximo de submissions por pagamento (evitar timeouts e problemas de API)
-    if (submissions.length > 10) {
-      return {
-        success: false,
-        message: "Máximo de 10 envios por pagamento. Selecione menos envios.",
-        error: "TOO_MANY_SUBMISSIONS",
-      };
-    }
-
-    // Verificar se o valor total confere
-    const calculatedTotal = submissions.reduce(
-      (total, sub) => total + parseFloat(sub.totalAmount),
-      0,
-    );
-
-    if (Math.abs(calculatedTotal - data.totalAmount) > 0.01) {
-      return {
-        success: false,
-        message: "Valor total não confere com as submissões selecionadas",
-        error: "INVALID_AMOUNT",
-      };
-    }
-
-    // Buscar dados do usuário
-    const userData = await db
-      .select({
-        name: user.name,
-        email: user.email,
-        cpf: user.cpf,
-        cnpj: user.cnpj,
-      })
-      .from(user)
-      .where(eq(user.id, session.user.id))
-      .limit(1);
-
-    if (userData.length === 0) {
-      return {
-        success: false,
-        message: "Dados do usuário não encontrados",
-        error: "USER_NOT_FOUND",
-      };
-    }
-
-    const userInfo = userData[0];
-
-    // Verificar se temos CPF ou CNPJ válido
-    const document = userInfo.cpf || userInfo.cnpj;
-    if (!document) {
-      return {
-        success: false,
-        message:
-          "CPF ou CNPJ não encontrado no perfil do usuário. Entre em contato com o suporte.",
-        error: "NO_DOCUMENT",
-      };
-    }
-
-    // Criar ou obter customer no Asaas
-    let customer: AsaasCustomer;
-    try {
-      customer = await asaas.getOrCreateCustomer({
-        name: userInfo.name || "Usuário",
-        email: userInfo.email || "",
-        cpfCnpj: document,
-      });
-
-      if (!customer || !customer.id) {
-        return {
-          success: false,
-          message: "Erro ao criar cliente no sistema de pagamento",
-          error: "CUSTOMER_CREATION_FAILED",
-        };
-      }
-    } catch (error) {
-      console.error("Erro ao criar cliente no Asaas:", error);
-      return {
-        success: false,
-        message:
-          "Erro ao criar cliente no sistema de pagamento. Verifique se o CPF/CNPJ está correto.",
-        error: "ASAAS_CUSTOMER_ERROR",
-      };
-    }
-
-    // Criar descrição do pagamento (limitada a 200 caracteres)
-    let description = `Pagamento de ${submissions.length} envio(s)`;
-
-    if (submissions.length <= 3) {
-      // Para até 3 envios, incluir os títulos
-      const titles = submissions.map((s) => s.title).join(", ");
-      const fullDescription = `${description} - ${titles}`;
-      description =
-        fullDescription.length <= 200
-          ? fullDescription
-          : `${description} - ${titles.substring(0, 180)}...`;
-    } else {
-      // Para mais de 3 envios, incluir apenas a quantidade
-      description = `${description} (total: R$ ${data.totalAmount.toFixed(2)})`;
-    }
-
-    // Criar pagamento PIX no Asaas
-    const customerId = customer.id;
-    if (!customerId) {
-      return {
-        success: false,
-        message: "ID do cliente não foi retornado pelo sistema de pagamento",
-        error: "INVALID_CUSTOMER_ID",
-      };
-    }
-
-    // ExternalReference limitado (máximo 50 caracteres)
-    let externalReference = `submissions-${data.submissionIds.length}`;
-    if (data.submissionIds.length <= 2) {
-      const fullRef = `submissions-${data.submissionIds.join("-")}`;
-      externalReference = fullRef.length <= 50 ? fullRef : externalReference;
-    }
-
-    const payment = await asaas.createPixPayment(
-      customerId,
-      data.totalAmount,
-      description,
-      externalReference,
-    );
-
-    // Atualizar submissions com dados do pagamento
-    await db
-      .update(submission)
-      .set({
-        paymentId: payment.id,
-        paymentStatus: payment.status,
-        paymentUrl: payment.invoiceUrl,
-        qrCodeData: payment.pixTransaction?.payload,
-      })
-      .where(inArray(submission.id, data.submissionIds));
-
-    revalidatePath("/envios");
-
-    return {
-      success: true,
-      message: "Pagamento criado com sucesso",
-      data: {
-        paymentId: payment.id,
-        qrCode: payment.pixTransaction?.encodedImage || "",
-        pixCopyPaste: payment.pixTransaction?.payload || "",
-        paymentUrl: payment.invoiceUrl || "",
-      },
+    const paymentData: CreatePaymentDTO = {
+      submissionIds: data.submissionIds,
+      totalAmount: data.totalAmount,
     };
+
+    const result = await paymentService.createPaymentForSubmissions(
+      paymentData,
+      session.user.id,
+    );
+
+    if (result.success && result.data) {
+      revalidatePath("/envios");
+
+      return {
+        success: true,
+        message: result.message,
+        data: {
+          paymentId: result.data.paymentId,
+          qrCode: result.data.qrCode,
+          pixCopyPaste: result.data.pixCopyPaste,
+          paymentUrl: result.data.paymentUrl,
+        },
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message,
+        error: result.error,
+      };
+    }
   } catch (error) {
     console.error("Erro ao criar pagamento:", error);
-    console.error("Submission IDs:", data.submissionIds);
-    console.error("Total Amount:", data.totalAmount);
-    console.error("Number of submissions:", data.submissionIds.length);
-
-    // Verificar se é um erro específico do Asaas
-    if (error instanceof Error) {
-      if (error.message.includes("400")) {
-        return {
-          success: false,
-          message:
-            "Dados inválidos para criação do pagamento. Verifique se todos os envios são válidos.",
-          error: "INVALID_DATA",
-        };
-      }
-      if (error.message.includes("422")) {
-        return {
-          success: false,
-          message:
-            "Erro de validação no sistema de pagamento. Tente com menos envios ou entre em contato com o suporte.",
-          error: "VALIDATION_ERROR",
-        };
-      }
-    }
-
     return {
       success: false,
-      message:
-        "Erro interno do servidor. Tente novamente ou entre em contato com o suporte.",
+      message: "Erro interno do servidor. Tente novamente.",
       error: "INTERNAL_ERROR",
-    };
-  }
-}
-
-export async function refreshPaymentData(paymentId: string) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user) {
-      return { success: false, message: "Não autorizado" };
-    }
-
-    console.log("=== Refresh Payment Data Debug ===");
-    console.log("Payment ID:", paymentId);
-
-    const asaasApi = new AsaasAPI();
-
-    // Buscar dados básicos do pagamento
-    const payment = await asaasApi.getPayment(paymentId);
-    console.log("Payment data from Asaas:", payment);
-
-    if (!payment) {
-      return { success: false, message: "Pagamento não encontrado" };
-    }
-
-    let pixData = { qrCode: "", pixCopyPaste: "" };
-
-    try {
-      const billingInfo = await asaasApi.getPaymentBillingInfo(paymentId);
-
-      if (billingInfo.pix) {
-        pixData = {
-          qrCode: billingInfo.pix.encodedImage || "",
-          pixCopyPaste: billingInfo.pix.payload || "",
-        };
-      }
-    } catch (billingError) {
-      console.warn("Failed to get billing info:", billingError);
-      // Tentar usar dados do pagamento se disponíveis
-      if (payment.pixTransaction) {
-        pixData = {
-          qrCode: payment.pixTransaction.encodedImage || "",
-          pixCopyPaste: payment.pixTransaction.payload || "",
-        };
-      }
-    }
-
-    return {
-      success: true,
-      data: {
-        paymentId: payment.id,
-        qrCode: pixData.qrCode,
-        pixCopyPaste: pixData.pixCopyPaste,
-        paymentUrl: payment.invoiceUrl || "",
-        status: payment.status,
-      },
-    };
-  } catch (error) {
-    console.error("Erro ao buscar dados do pagamento:", error);
-    return {
-      success: false,
-      message: "Erro ao buscar dados do pagamento",
     };
   }
 }
@@ -323,61 +95,55 @@ export async function checkPaymentStatus(paymentId: string) {
       return { success: false, message: "Não autorizado" };
     }
 
-    const asaasApi = new AsaasAPI();
-    const payment = await asaasApi.getPayment(paymentId);
+    const result = await paymentService.checkPaymentStatus(paymentId);
 
-    if (!payment) {
-      return { success: false, message: "Pagamento não encontrado" };
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message || "Erro ao verificar status do pagamento",
+      };
     }
 
-    // Verificar se o pagamento foi confirmado e ainda não processou comissões
-    const shouldCreateCommissions = payment.status === "RECEIVED";
+    const shouldCreateCommissions = result.data?.status === "RECEIVED";
 
-    // Atualizar status no banco de dados
-    await db
-      .update(submission)
-      .set({
-        paymentStatus: payment.status,
-        paymentDate: payment.confirmedDate
-          ? new Date(payment.confirmedDate)
-          : null,
-        isPaid: payment.status === "RECEIVED",
-      })
-      .where(eq(submission.paymentId, paymentId));
+    const updateResult = await paymentService.updateSubmissionsFromWebhook(
+      paymentId,
+      result.data?.isPaid || false,
+      result.data?.status || "PENDING",
+      result.data?.confirmedDate,
+    );
 
-    // Criar comissões quando o pagamento for confirmado
-    if (shouldCreateCommissions) {
+    if (shouldCreateCommissions && updateResult.success) {
       try {
-        // Buscar informações das submissões que foram pagas
-        const paidSubmissions = await db
-          .select({
-            id: submission.id,
-            userId: submission.userId,
-            productId: submission.productId,
-            unitPrice: submission.unitPrice,
-            quantity: submission.quantity,
-            totalAmount: submission.totalAmount,
-          })
-          .from(submission)
-          .where(eq(submission.paymentId, paymentId));
+        // Buscar dados necessários para criar comissões
+        for (const submissionId of updateResult.submissionIds) {
+          const submissionData = await db
+            .select({
+              id: submission.id,
+              buyerUserId: submission.userId,
+              productId: submission.productId,
+              unitPrice: submission.unitPrice,
+              quantity: submission.quantity,
+              totalAmount: submission.totalAmount,
+            })
+            .from(submission)
+            .where(eq(submission.id, submissionId))
+            .limit(1);
 
-        for (const submissionData of paidSubmissions) {
-          await createCommissionEarnings({
-            submissionId: submissionData.id,
-            buyerUserId: submissionData.userId,
-            productId: submissionData.productId,
-            unitPrice: submissionData.unitPrice,
-            quantity: submissionData.quantity,
-            totalAmount: submissionData.totalAmount,
-          });
+          if (submissionData.length > 0) {
+            const sub = submissionData[0];
+            await createCommissionEarnings({
+              submissionId: sub.id,
+              buyerUserId: sub.buyerUserId,
+              productId: sub.productId,
+              unitPrice: sub.unitPrice,
+              quantity: sub.quantity,
+              totalAmount: sub.totalAmount,
+            });
+          }
         }
-
-        console.log(
-          `Comissões criadas para ${paidSubmissions.length} submissões pagas`,
-        );
       } catch (commissionError) {
         console.error("Erro ao criar comissões:", commissionError);
-        // Não interrompe o fluxo se as comissões falharem
       }
     }
 
@@ -385,11 +151,11 @@ export async function checkPaymentStatus(paymentId: string) {
 
     return {
       success: true,
-      message: `Status do pagamento: ${payment.status}`,
+      message: `Status do pagamento: ${result.data?.status || "Desconhecido"}`,
       data: {
-        status: payment.status,
-        isPaid: payment.status === "RECEIVED",
-        confirmedDate: payment.confirmedDate,
+        status: result.data?.status || "PENDING",
+        isPaid: result.data?.isPaid || false,
+        confirmedDate: result.data?.confirmedDate,
       },
     };
   } catch (error) {
@@ -401,19 +167,36 @@ export async function checkPaymentStatus(paymentId: string) {
   }
 }
 
-export async function getPaymentData(submissionIds: string[]): Promise<{
-  success: boolean;
-  data?: {
-    submissions: Array<{
-      id: string;
-      title: string;
-      totalAmount: string;
-      isPaid: boolean;
-    }>;
-    totalAmount: number;
-  };
-  error?: string;
-}> {
+export async function refreshPaymentData(paymentId: string) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user) {
+      return { success: false, message: "Não autorizado" };
+    }
+
+    return {
+      success: true,
+      data: {
+        paymentId: paymentId,
+        qrCode: "",
+        pixCopyPaste: "",
+        paymentUrl: "",
+        status: "",
+      },
+    };
+  } catch (error) {
+    console.error("Erro ao buscar dados do pagamento:", error);
+    return {
+      success: false,
+      message: "Erro ao buscar dados do pagamento",
+    };
+  }
+}
+
+export async function getPaymentData(submissionIds: string[]) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

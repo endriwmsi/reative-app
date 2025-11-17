@@ -40,9 +40,9 @@ export function usePaymentStatus({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isEnabledRef = useRef(enabled);
 
-  // Intervalos progressivos (em segundos) - muito mais conservadores
-  const intervals = [10, 20, 30, 60, 120]; // 10s, 20s, 30s, 1min, 2min
-  const maxChecks = 10; // Máximo 10 verificações (aproximadamente 15-20 minutos)
+  // Intervalos progressivos (em segundos) - mais conservadores com webhook
+  const intervals = [30, 60, 120, 300]; // 30s, 1min, 2min, 5min
+  const maxChecks = 6; // Máximo 6 verificações (aproximadamente 15 minutos)
 
   const checkPayment = useCallback(async () => {
     if (!paymentId || isChecking || isPaid) return;
@@ -66,13 +66,13 @@ export function usePaymentStatus({
 
         if (newIsPaid && !isPaid) {
           onPaymentConfirmed?.();
-          toast.success("🎉 Pagamento confirmado!", {
-            description: "Seus envios foram processados com sucesso.",
-            duration: 5000,
-          });
+          // Toast será exibido pelo modal, não aqui para evitar duplicação
         } else if (newStatus !== status) {
           // Status mudou mas ainda não foi pago
-          toast.info(`Status atualizado: ${getStatusLabel(newStatus)}`);
+          toast.info(`Status atualizado: ${getStatusLabel(newStatus)}`, {
+            description: "Verificação automática em andamento",
+            duration: 3000,
+          });
         }
 
         return newIsPaid;
@@ -106,8 +106,11 @@ export function usePaymentStatus({
       const intervalIndex = Math.min(currentCheckCount, intervals.length - 1);
       const intervalSeconds = intervals[intervalIndex];
 
+      // Com webhook ativo, verificar menos frequentemente
+      const webhookAwareInterval = intervalSeconds * 1.5; // 50% mais lento
+
       // Iniciar countdown
-      setNextCheckIn(intervalSeconds);
+      setNextCheckIn(Math.floor(webhookAwareInterval));
 
       timeoutRef.current = setTimeout(async () => {
         const paymentConfirmed = await checkPayment();
@@ -115,7 +118,7 @@ export function usePaymentStatus({
         if (!paymentConfirmed && isEnabledRef.current) {
           scheduleNextCheck(currentCheckCount + 1);
         }
-      }, intervalSeconds * 1000);
+      }, webhookAwareInterval * 1000);
     },
     [checkPayment],
   );

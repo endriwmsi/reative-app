@@ -36,9 +36,14 @@ export function PaymentCheckProgress({
 
   if (checkCount >= maxChecks) {
     return (
-      <div className="text-xs text-muted-foreground text-center">
-        Verificações automáticas finalizadas. Use "Verificar Pagamento" para
-        verificar manualmente.
+      <div className="text-center space-y-2">
+        <div className="text-xs text-muted-foreground">
+          Verificações automáticas concluídas
+        </div>
+        <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+          💡 O pagamento ainda será confirmado automaticamente via webhook
+          quando processado
+        </div>
       </div>
     );
   }
@@ -55,6 +60,9 @@ export function PaymentCheckProgress({
         {isChecking && <span className="text-blue-600">Verificando...</span>}
       </div>
       <Progress value={progressPercentage} className="h-1" />
+      <div className="text-xs text-muted-foreground text-center">
+        🚀 Confirmação automática via webhook habilitada
+      </div>
     </div>
   );
 }
