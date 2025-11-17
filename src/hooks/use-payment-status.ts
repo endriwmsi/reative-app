@@ -40,9 +40,9 @@ export function usePaymentStatus({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isEnabledRef = useRef(enabled);
 
-  // Intervalos progressivos (em segundos) - mais conservadores com webhook
-  const intervals = [30, 60, 120, 300]; // 30s, 1min, 2min, 5min
-  const maxChecks = 6; // Máximo 6 verificações (aproximadamente 15 minutos)
+  // Intervalos progressivos (em segundos) - otimizados para melhor UX
+  const intervals = [10, 20, 30, 60]; // 10s, 20s, 30s, 60s
+  const maxChecks = 8; // Máximo 8 verificações (aproximadamente 10 minutos)
 
   const checkPayment = useCallback(async () => {
     if (!paymentId || isChecking || isPaid) return;
@@ -106,11 +106,8 @@ export function usePaymentStatus({
       const intervalIndex = Math.min(currentCheckCount, intervals.length - 1);
       const intervalSeconds = intervals[intervalIndex];
 
-      // Com webhook ativo, verificar menos frequentemente
-      const webhookAwareInterval = intervalSeconds * 1.5; // 50% mais lento
-
       // Iniciar countdown
-      setNextCheckIn(Math.floor(webhookAwareInterval));
+      setNextCheckIn(Math.floor(intervalSeconds));
 
       timeoutRef.current = setTimeout(async () => {
         const paymentConfirmed = await checkPayment();
@@ -118,7 +115,7 @@ export function usePaymentStatus({
         if (!paymentConfirmed && isEnabledRef.current) {
           scheduleNextCheck(currentCheckCount + 1);
         }
-      }, webhookAwareInterval * 1000);
+      }, intervalSeconds * 1000);
     },
     [checkPayment],
   );

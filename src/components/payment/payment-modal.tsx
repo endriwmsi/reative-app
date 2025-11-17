@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { usePaymentBroadcast } from "@/hooks/use-payment-broadcast";
 import { usePaymentStatus } from "@/hooks/use-payment-status";
 import { PaymentCheckProgress } from "./payment-check-progress";
 import { WebhookStatusIndicator } from "./webhook-status-indicator";
@@ -52,6 +53,9 @@ export function PaymentModal({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPaymentData, setCurrentPaymentData] = useState(paymentData);
 
+  // Hook para comunicação entre abas
+  const { broadcastPaymentConfirmed } = usePaymentBroadcast();
+
   useEffect(() => {
     setCurrentPaymentData(paymentData);
   }, [paymentData]);
@@ -72,6 +76,12 @@ export function PaymentModal({
     enabled: open, // Só verifica quando o modal está aberto
     onPaymentConfirmed: () => {
       stopChecking();
+
+      // Broadcast para outras abas que pagamento foi confirmado
+      broadcastPaymentConfirmed(
+        paymentData.paymentId,
+        "Seus envios foram processados com sucesso!",
+      );
 
       // Mostrar toast de sucesso personalizado
       toast.success("🎉 Pagamento Confirmado!", {
@@ -171,7 +181,6 @@ export function PaymentModal({
             <WebhookStatusIndicator
               isPaid={isPaid}
               isChecking={checkingPayment}
-              lastChecked={lastChecked}
               className="text-xs"
             />
           </DialogTitle>

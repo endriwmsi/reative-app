@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { WebhookService } from "@/services/webhook.service";
@@ -81,6 +82,25 @@ export async function POST(request: NextRequest) {
       processed: result.processed,
       submissionsAffected: result.submissionIds?.length || 0,
     });
+
+    // Se o pagamento foi confirmado, revalidar dados para atualizar UI
+    if (validation.event.event === "PAYMENT_RECEIVED" && result.success) {
+      try {
+        // Revalidar páginas principais que mostram dados de pagamento
+        revalidatePath("/dashboard");
+        revalidatePath("/envios");
+        revalidatePath("/dashboard/envios");
+        console.log(
+          "[AsaasWebhook] Pages revalidated after payment confirmation",
+        );
+      } catch (revalidationError) {
+        console.error(
+          "[AsaasWebhook] Error revalidating paths:",
+          revalidationError,
+        );
+        // Não falhar o webhook por causa disso
+      }
+    }
 
     // Resposta de sucesso
     return NextResponse.json({
