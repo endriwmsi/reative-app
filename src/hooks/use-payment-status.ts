@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { checkPaymentStatus } from "@/actions/payment/payment.action";
+import { usePaymentBoost } from "./use-payment-boost";
 
 interface UsePaymentStatusOptions {
   paymentId: string;
@@ -40,9 +41,25 @@ export function usePaymentStatus({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isEnabledRef = useRef(enabled);
 
-  // Intervalos progressivos (em segundos) - otimizados para melhor UX
-  const intervals = [10, 20, 30, 60]; // 10s, 20s, 30s, 60s
-  const maxChecks = 8; // Máximo 8 verificações (aproximadamente 10 minutos)
+  // Hook para boost temporário após webhook
+  const { isBoosted } = usePaymentBoost({
+    paymentId,
+    onBoostTriggered: () => {
+      console.log(
+        "[PaymentStatus] Boost triggered - will check more frequently",
+      );
+      // Forçar uma verificação imediata quando boost é ativado
+      if (!isPaid && enabled) {
+        checkPayment();
+      }
+    },
+  });
+
+  // Intervalos normais vs intervalos com boost
+  const normalIntervals = [10, 20, 30, 60]; // 10s, 20s, 30s, 60s
+  const boostedIntervals = [2, 3, 5, 8]; // 2s, 3s, 5s, 8s (muito mais rápido)
+  const intervals = isBoosted ? boostedIntervals : normalIntervals;
+  const maxChecks = isBoosted ? 12 : 8; // Mais verificações durante boost
 
   const checkPayment = useCallback(async () => {
     if (!paymentId || isChecking || isPaid) return;
@@ -117,7 +134,7 @@ export function usePaymentStatus({
         }
       }, intervalSeconds * 1000);
     },
-    [checkPayment],
+    [checkPayment, intervals, maxChecks],
   );
 
   const manualCheck = useCallback(async () => {

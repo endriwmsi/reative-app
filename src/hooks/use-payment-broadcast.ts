@@ -3,6 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import {
+  revalidatePaymentData,
+  revalidateSubmissionsData,
+} from "@/actions/revalidate/revalidate.action";
 
 interface PaymentBroadcastData {
   type: "PAYMENT_CONFIRMED";
@@ -23,12 +27,16 @@ export function usePaymentBroadcast() {
       channelRef.current = new BroadcastChannel("payment-updates");
 
       // Escutar mensagens de outras abas/janelas
-      channelRef.current.onmessage = (
+      channelRef.current.onmessage = async (
         event: MessageEvent<PaymentBroadcastData>,
       ) => {
         const { type, paymentId, message } = event.data;
 
         if (type === "PAYMENT_CONFIRMED") {
+          console.log(
+            `[PaymentBroadcast] Pagamento ${paymentId} confirmado - iniciando atualização`,
+          );
+
           // Mostrar toast de confirmação
           toast.success("🎉 Pagamento Confirmado!", {
             description:
@@ -36,12 +44,42 @@ export function usePaymentBroadcast() {
             duration: 5000,
           });
 
-          // Revalidar a página atual para atualizar dados
-          router.refresh();
+          try {
+            // 1. Forçar revalidação server-side específica para este pagamento
+            const paymentRevalidation = await revalidatePaymentData(paymentId);
+            if (paymentRevalidation.success) {
+              console.log(
+                `[PaymentBroadcast] Specific revalidation completed for ${paymentId}`,
+              );
+            }
 
-          console.log(
-            `[PaymentBroadcast] Pagamento ${paymentId} confirmado em outra aba`,
-          );
+            // 2. Revalidação geral como fallback
+            const generalRevalidation = await revalidateSubmissionsData();
+            if (generalRevalidation.success) {
+              console.log("[PaymentBroadcast] General revalidation completed");
+            }
+
+            // 3. Forçar refresh da página (força re-fetch dos dados)
+            console.log("[PaymentBroadcast] Triggering router refresh");
+            router.refresh();
+
+            // 4. Aguardar e fazer refresh adicional se necessário
+            setTimeout(() => {
+              console.log("[PaymentBroadcast] Secondary refresh triggered");
+              router.refresh();
+            }, 2000); // Aumentado para 2s
+
+            // 5. Terceiro refresh para garantir (em casos extremos)
+            setTimeout(() => {
+              console.log("[PaymentBroadcast] Final refresh triggered");
+              router.refresh();
+            }, 5000); // 5s depois
+          } catch (error) {
+            console.error("[PaymentBroadcast] Error during refresh:", error);
+            // Fallback: pelo menos fazer o refresh básico
+            router.refresh();
+            setTimeout(() => router.refresh(), 1000);
+          }
         }
       };
     }

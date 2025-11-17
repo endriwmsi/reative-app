@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { revalidateSubmissionsData } from "@/actions/revalidate/revalidate.action";
 import { WebhookService } from "@/services/webhook.service";
 
 const webhookService = new WebhookService();
@@ -83,19 +84,36 @@ export async function POST(request: NextRequest) {
       submissionsAffected: result.submissionIds?.length || 0,
     });
 
-    // Se o pagamento foi confirmado, revalidar dados para atualizar UI
+    // Se o pagamento foi confirmado, forçar revalidação completa
     if (validation.event.event === "PAYMENT_RECEIVED" && result.success) {
       try {
-        // Revalidar páginas principais que mostram dados de pagamento
+        console.log(
+          "[AsaasWebhook] Payment confirmed - starting complete revalidation",
+        );
+
+        // Método 1: Revalidação direta (funciona para futuras requisições)
         revalidatePath("/dashboard");
         revalidatePath("/envios");
         revalidatePath("/dashboard/envios");
-        console.log(
-          "[AsaasWebhook] Pages revalidated after payment confirmation",
-        );
+        revalidatePath("/(dashboard)/envios");
+
+        // Método 2: Server Action (mais robusta)
+        const serverRevalidation = await revalidateSubmissionsData();
+        if (serverRevalidation.success) {
+          console.log(
+            "[AsaasWebhook] Server action revalidation completed successfully",
+          );
+        } else {
+          console.error(
+            "[AsaasWebhook] Server action revalidation failed:",
+            serverRevalidation.error,
+          );
+        }
+
+        console.log("[AsaasWebhook] Complete revalidation process finished");
       } catch (revalidationError) {
         console.error(
-          "[AsaasWebhook] Error revalidating paths:",
+          "[AsaasWebhook] Error during revalidation process:",
           revalidationError,
         );
         // Não falhar o webhook por causa disso
@@ -103,13 +121,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Resposta de sucesso
-    return NextResponse.json({
+    const response = {
       success: true,
       message: result.message,
       eventId: validation.event.id,
       paymentId: result.paymentId,
       processed: result.processed,
+      // Adicionar informações para broadcast
+      shouldBroadcast:
+        validation.event.event === "PAYMENT_RECEIVED" && result.success,
+      eventType: validation.event.event,
+    };
+
+    console.log("[AsaasWebhook] Sending response:", {
+      success: response.success,
+      eventType: response.eventType,
+      shouldBroadcast: response.shouldBroadcast,
+      paymentId: response.paymentId,
     });
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("[AsaasWebhook] Unexpected error:", error);
     return NextResponse.json(
