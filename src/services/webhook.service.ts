@@ -1,4 +1,3 @@
-import { revalidatePath } from "next/cache";
 import type {
   AsaasWebhookEvent,
   WebhookProcessingResult,
@@ -158,21 +157,6 @@ export class WebhookService {
         paymentId: event.payment.id,
         error: updateResult.error,
       };
-    }
-
-    // Revalidar imediatamente todas as rotas após webhook
-    try {
-      revalidatePath("/envios");
-      revalidatePath("/dashboard");
-      revalidatePath("/");
-      console.log(
-        "[WebhookService] Routes revalidated after payment confirmation",
-      );
-    } catch (revalidateError) {
-      console.error(
-        "[WebhookService] Error revalidating paths:",
-        revalidateError,
-      );
     }
 
     // TODO: Aqui você pode adicionar a lógica para criar comissões
