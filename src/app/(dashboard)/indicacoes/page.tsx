@@ -3,6 +3,9 @@
 import {
   ChevronDown,
   ChevronRight,
+  Copy,
+  Check,
+  Share2,
   Eye,
   Search,
   TreePine,
@@ -11,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   getAllReferralTrees,
   getReferralStats,
@@ -42,6 +46,8 @@ export default function ReferralTreePage() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [showAllLevels, setShowAllLevels] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const isAdmin = session?.user?.role === "admin";
 
@@ -54,7 +60,7 @@ export default function ReferralTreePage() {
 
       try {
         // Busca a árvore de indicações
-        const treeResponse = session
+        const treeResponse = isAdmin
           ? await getAllReferralTrees()
           : await getUserReferralTree();
 
@@ -159,6 +165,52 @@ export default function ReferralTreePage() {
 
   const collapseAll = () => {
     setExpandedNodes(new Set());
+  };
+
+  // Funções para copiar
+  const referralUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/register?ref=${stats?.referralCode}`;
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(stats?.referralCode || "");
+      setCopiedCode(true);
+      toast.success("Código copiado!");
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (error) {
+      console.error("Erro ao copiar:", error);
+      toast.error("Erro ao copiar o código");
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralUrl);
+      setCopiedLink(true);
+      toast.success("Link de indicação copiado!");
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (error) {
+      console.error("Erro ao copiar:", error);
+      toast.error("Erro ao copiar o link");
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Junte-se à nossa plataforma",
+          text: "Use meu link de indicação para se registrar!",
+          url: referralUrl,
+        });
+      } catch (error) {
+        console.error("Erro ao compartilhar:", error);
+        if ((error as Error).name !== "AbortError") {
+          toast.error("Erro ao compartilhar o link");
+        }
+      }
+    } else {
+      handleCopyLink();
+    }
   };
 
   const renderNode = (node: ReferralNode, depth = 0) => {
@@ -293,10 +345,26 @@ export default function ReferralTreePage() {
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.referralCode}</div>
-                <p className="text-xs text-muted-foreground">
-                  Código de referência
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{stats.referralCode}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Código de referência
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyCode}
+                    className="ml-2"
+                  >
+                    {copiedCode ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -342,9 +410,40 @@ export default function ReferralTreePage() {
                 <TreePine className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-sm">Use o código:</div>
-                <div className="text-lg font-bold text-primary">
-                  {stats.referralCode}
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm font-medium">Link de Indicação:</div>
+                    <div className="text-xs text-muted-foreground font-mono truncate">
+                      {referralUrl}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyLink}
+                      className="flex-1"
+                    >
+                      {copiedLink ? (
+                        <>
+                          <Check className="h-4 w-4 mr-1 text-green-500" />
+                          Copiado
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 mr-1" />
+                          Copiar
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShare}
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
