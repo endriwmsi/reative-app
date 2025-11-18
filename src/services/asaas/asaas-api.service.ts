@@ -8,10 +8,6 @@ import type {
   AsaasPaymentResponse,
 } from "@/types/payment";
 
-/**
- * Service para interação com a API do Asaas
- * Responsável apenas pelas operações de API, sem lógica de negócio
- */
 export class AsaasAPIService {
   private readonly config: AsaasConfig;
 
@@ -36,9 +32,6 @@ export class AsaasAPIService {
     });
   }
 
-  /**
-   * Método genérico para fazer requisições à API
-   */
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -65,7 +58,7 @@ export class AsaasAPIService {
       url,
       headers: {
         ...headers,
-        access_token: headers.access_token?.substring(0, 15) + "...",
+        access_token: `${headers.access_token?.substring(0, 15)}...`,
       },
       method: options.method || "GET",
     });

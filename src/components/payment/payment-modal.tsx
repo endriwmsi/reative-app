@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   Check,
   CheckCircle,
   Copy,
@@ -25,8 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { usePaymentStatus } from "@/hooks/use-payment-status";
-import { PaymentCheckProgress } from "./payment-check-progress";
-import { WebhookStatusIndicator } from "./webhook-status-indicator";
 
 interface PaymentModalProps {
   open: boolean;
@@ -56,31 +55,23 @@ export function PaymentModal({
     setCurrentPaymentData(paymentData);
   }, [paymentData]);
 
-  // Hook para verificação automática de status
   const {
     isPaid,
     status: paymentStatus,
     isChecking: checkingPayment,
-    checkCount,
-    maxChecks,
-    nextCheckIn,
-    lastChecked,
-    manualCheck,
     stopChecking,
   } = usePaymentStatus({
     paymentId: paymentData.paymentId,
-    enabled: open, // Só verifica quando o modal está aberto
+    enabled: open,
     onPaymentConfirmed: () => {
       stopChecking();
 
-      // Mostrar toast de sucesso personalizado
       toast.success("🎉 Pagamento Confirmado!", {
         description:
           "Confirmação recebida automaticamente! Seus envios foram processados com sucesso.",
         duration: 5000,
       });
 
-      // Fechar modal automaticamente após 2 segundos
       setTimeout(() => {
         onPaymentSuccess?.();
         onOpenChange(false);
@@ -91,24 +82,11 @@ export function PaymentModal({
     },
   });
 
-  // Cleanup quando o modal for fechado
   useEffect(() => {
     if (!open) {
       stopChecking();
     }
   }, [open, stopChecking]);
-
-  // Debug: Log dos dados recebidos (apenas em desenvolvimento)
-  if (process.env.NODE_ENV === "development") {
-    console.log("=== Payment Modal Data Debug ===");
-    console.log("Payment Data:", {
-      paymentId: paymentData.paymentId,
-      hasQrCode: !!paymentData.qrCode,
-      hasPixCode: !!paymentData.pixCopyPaste,
-      totalAmount: paymentData.totalAmount,
-      submissionCount: paymentData.submissionTitles.length,
-    });
-  }
 
   const copyToClipboard = async () => {
     try {
@@ -143,9 +121,9 @@ export function PaymentModal({
     }
   };
 
-  const handleCheckPayment = async () => {
-    await manualCheck();
-  };
+  // const handleCheckPayment = async () => {
+  //   await manualCheck();
+  // };
 
   const getStatusLabel = (status: string): string => {
     const statusLabels: Record<string, string> = {
@@ -163,17 +141,9 @@ export function PaymentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Pagamento PIX
-            </div>
-            <WebhookStatusIndicator
-              isPaid={isPaid}
-              isChecking={checkingPayment}
-              lastChecked={lastChecked}
-              className="text-xs"
-            />
+          <DialogTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Pagamento PIX
           </DialogTitle>
           <DialogDescription>
             Escaneie o QR Code ou copie o código PIX para realizar o pagamento
@@ -181,56 +151,43 @@ export function PaymentModal({
         </DialogHeader>
 
         <div className="space-y-3">
-          {/* Status do Pagamento Aprimorado */}
-          {isPaid ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-green-700">
-                <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">Pagamento Confirmado!</span>
-              </div>
-              <p className="text-sm text-green-600 mt-1">
-                Seus envios foram processados com sucesso.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-blue-700">
-                  {checkingPayment ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <QrCode className="h-4 w-4" />
-                  )}
-                  <span className="font-medium">
-                    {checkingPayment
-                      ? "Verificando pagamento..."
-                      : "Aguardando pagamento"}
-                  </span>
+          <Card>
+            <CardContent>
+              {isPaid ? (
+                <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-semibold">Pagamento Confirmado!</span>
+                  </div>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-300 mt-1">
+                    Seus envios foram processados com sucesso.
+                  </p>
                 </div>
-                {lastChecked && (
-                  <span className="text-xs text-blue-600">
-                    Última verificação: {lastChecked.toLocaleTimeString()}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-blue-600">
-                {paymentStatus === "PENDING"
-                  ? "O sistema verificará automaticamente quando o pagamento for realizado."
-                  : `Status atual: ${getStatusLabel(paymentStatus)}`}
-              </p>
-              {/* Componente de progresso das verificações */}
-              <PaymentCheckProgress
-                isChecking={checkingPayment}
-                checkCount={checkCount}
-                maxChecks={maxChecks}
-                nextCheckIn={nextCheckIn}
-              />
-            </div>
-          )}
+              ) : (
+                <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-3 text-amber-700 dark:text-amber-400">
+                    {checkingPayment ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <AlertTriangle className="h-5 w-5" />
+                    )}
+                    <span className="font-semibold">
+                      {checkingPayment
+                        ? "Verificando pagamento..."
+                        : "Aguardando pagamento"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-amber-600 dark:text-amber-300">
+                    {paymentStatus === "PENDING"
+                      ? "O sistema verificará automaticamente quando o pagamento for realizado."
+                      : `Status atual: ${getStatusLabel(paymentStatus)}`}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          {/* Layout Horizontal - Informações + QR Code */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Resumo do Pagamento */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Resumo do Pagamento</CardTitle>
@@ -238,7 +195,7 @@ export function PaymentModal({
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Valor Total:</span>
-                  <span className="text-xl font-bold text-green-600">
+                  <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                     R${" "}
                     {currentPaymentData.totalAmount
                       .toFixed(2)
@@ -320,7 +277,7 @@ export function PaymentModal({
 
           {/* PIX Copy and Paste */}
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Copy className="h-4 w-4" />
                 Código PIX (Copia e Cola)
@@ -332,7 +289,7 @@ export function PaymentModal({
                   {currentPaymentData.pixCopyPaste ? (
                     currentPaymentData.pixCopyPaste
                   ) : (
-                    <span className="text-gray-500 italic">
+                    <span className="text-muted-foreground italic">
                       {currentPaymentData.pixCopyPaste === ""
                         ? "Código PIX não disponível"
                         : "Carregando código PIX..."}
@@ -351,7 +308,7 @@ export function PaymentModal({
                   }
                 >
                   {copied ? (
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}
@@ -363,7 +320,7 @@ export function PaymentModal({
                     Cole este código no app do seu banco para efetuar o
                     pagamento
                   </p>
-                  <p className="text-xs text-blue-600 bg-blue-50 p-1 rounded">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 p-2 rounded">
                     💡 O pagamento será confirmado automaticamente após o PIX
                     ser processado
                   </p>
@@ -389,11 +346,15 @@ export function PaymentModal({
                 Atualizar
               </Button>
 
-              <Button
+              {/* <Button
                 variant="outline"
                 onClick={handleCheckPayment}
                 disabled={checkingPayment || isPaid}
-                className={isPaid ? "text-green-600 border-green-600" : ""}
+                className={
+                  isPaid
+                    ? "text-emerald-600 border-emerald-600 dark:text-emerald-400 dark:border-emerald-400"
+                    : ""
+                }
               >
                 {checkingPayment ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -407,7 +368,7 @@ export function PaymentModal({
                   : checkingPayment
                     ? "Verificando..."
                     : "Verificar Agora"}
-              </Button>
+              </Button> */}
             </div>
 
             <div className="space-x-2">

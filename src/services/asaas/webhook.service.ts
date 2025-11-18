@@ -5,9 +5,6 @@ import type {
 } from "@/types/payment";
 import { PaymentService } from "./payment.service";
 
-/**
- * Service responsável pelo processamento de webhooks do Asaas
- */
 export class WebhookService {
   private paymentService: PaymentService;
 

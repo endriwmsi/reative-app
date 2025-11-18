@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { submission } from "@/db/schema/submission";
-import { PaymentService } from "@/services";
+import { PaymentService } from "@/services/asaas";
 import type { CreatePaymentDTO } from "@/types/payment";
 import { createCommissionEarnings } from "../commission/commission-earnings.action";
 

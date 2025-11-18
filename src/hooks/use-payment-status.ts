@@ -18,7 +18,6 @@ interface PaymentStatusResult {
   lastChecked: Date | null;
   checkCount: number;
   maxChecks: number;
-  nextCheckIn: number;
   manualCheck: () => Promise<void>;
   stopChecking: () => void;
 }
@@ -34,15 +33,14 @@ export function usePaymentStatus({
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [checkCount, setCheckCount] = useState<number>(0);
-  const [nextCheckIn, setNextCheckIn] = useState<number>(0);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isEnabledRef = useRef(enabled);
 
-  // Intervalos progressivos (em segundos) - mais conservadores com webhook
-  const intervals = [30, 60, 120, 300]; // 30s, 1min, 2min, 5min
-  const maxChecks = 6; // Máximo 6 verificações (aproximadamente 15 minutos)
+  // Intervalos progressivos (em segundos)
+  const intervals = [10, 20, 30, 60]; // 10s, 20s, 30s, 1min
+  const maxChecks = 8; // Máximo 8 verificações
 
   const checkPayment = useCallback(async () => {
     if (!paymentId || isChecking || isPaid) return;
@@ -98,7 +96,6 @@ export function usePaymentStatus({
   const scheduleNextCheck = useCallback(
     (currentCheckCount: number) => {
       if (currentCheckCount >= maxChecks || !isEnabledRef.current) {
-        setNextCheckIn(0);
         return;
       }
 
@@ -106,19 +103,13 @@ export function usePaymentStatus({
       const intervalIndex = Math.min(currentCheckCount, intervals.length - 1);
       const intervalSeconds = intervals[intervalIndex];
 
-      // Com webhook ativo, verificar menos frequentemente
-      const webhookAwareInterval = intervalSeconds * 1.5; // 50% mais lento
-
-      // Iniciar countdown
-      setNextCheckIn(Math.floor(webhookAwareInterval));
-
       timeoutRef.current = setTimeout(async () => {
         const paymentConfirmed = await checkPayment();
 
         if (!paymentConfirmed && isEnabledRef.current) {
           scheduleNextCheck(currentCheckCount + 1);
         }
-      }, webhookAwareInterval * 1000);
+      }, intervalSeconds * 1000);
     },
     [checkPayment],
   );
@@ -178,7 +169,6 @@ export function usePaymentStatus({
     lastChecked,
     checkCount,
     maxChecks,
-    nextCheckIn,
     manualCheck,
     stopChecking,
   };

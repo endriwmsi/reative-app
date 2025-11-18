@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { WebhookService } from "@/services/webhook.service";
+import { WebhookService } from "@/services/asaas";
 
 const webhookService = new WebhookService();
 
