@@ -25,13 +25,13 @@ export function DataTablePagination<TData>({
   table,
 }: DataTablePaginationProps<TData>) {
   return (
-    <div className="flex items-center justify-between px-2">
-      <div className="flex-1 text-sm text-muted-foreground">
+    <div className="flex flex-col gap-4 px-2 lg:flex-row lg:items-center lg:justify-between lg:gap-0">
+      <div className="flex-1 text-sm text-muted-foreground text-center lg:text-left">
         {table.getFilteredSelectedRowModel().rows.length} de{" "}
         {table.getFilteredRowModel().rows.length} linha(s) selecionada(s).
       </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:space-x-6 xl:space-x-8">
+        <div className="flex items-center justify-center space-x-2 lg:justify-start">
           <p className="text-sm font-medium">Linhas por página</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
@@ -51,11 +51,11 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+        <div className="flex items-center justify-center text-sm font-medium lg:w-[100px]">
           Página {table.getState().pagination.pageIndex + 1} de{" "}
           {table.getPageCount()}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center space-x-2">
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"

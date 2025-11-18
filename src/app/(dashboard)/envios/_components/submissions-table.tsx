@@ -36,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePayment } from "@/hooks/use-payment";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { DownloadClientsButton } from "./download-clients-button";
 
 interface SubmissionData {
@@ -288,7 +288,6 @@ export default function SubmissionsTable({
     {
       id: "select",
       header: () => {
-        // Verificar se todos os envios estão selecionados
         const allSelected =
           submissions.length > 0 &&
           submissions.every((submission) =>
@@ -321,13 +320,12 @@ export default function SubmissionsTable({
     },
     {
       accessorKey: "title",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Nome" />
-      ),
+      header: "Nome do envio",
       cell: ({ row }) => {
         const submission = row.original;
-        return <div className="text-sm">{submission.title}</div>;
+        return <div className="text-sm break-words">{submission.title}</div>;
       },
+      enableSorting: false,
     },
     {
       accessorKey: "produto",
@@ -339,26 +337,31 @@ export default function SubmissionsTable({
     },
     {
       accessorKey: "usuario",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Usuário" />
-      ),
+      header: "Parceiro",
       cell: ({ row }) => {
         const submission = row.original;
         return (
-          <div className="text-sm flex flex-col">
-            <span>{submission.userName}</span>
-            <span className="text-primary/50">{submission.userEmail}</span>
-            <span className="text-primary/50">{submission.userPhone}</span>
+          <div className="text-sm flex flex-col space-y-1">
+            <span className="font-medium break-words">
+              {submission.userName}
+            </span>
+            <span className="text-primary/50 text-xs break-all">
+              {submission.userEmail}
+            </span>
+            <span className="text-primary/50 text-xs">
+              {submission.userPhone}
+            </span>
           </div>
         );
       },
+      enableSorting: false,
     },
     {
       accessorKey: "quantidade",
-      header: "Quantidade",
+      header: "Qtd.",
       cell: ({ row }) => {
         const submission = row.original;
-        return <div className="text-sm">{submission.quantity}</div>;
+        return <div className="text-sm text-center">{submission.quantity}</div>;
       },
     },
     {
@@ -376,7 +379,25 @@ export default function SubmissionsTable({
     {
       accessorKey: "status",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Status" />
+        <DataTableColumnHeader
+          className="text-center justify-center"
+          column={column}
+          title="Status"
+          options={[
+            { value: "aguardando", label: "Aguardando" },
+            { value: "processando", label: "Processando" },
+            { value: "em_analise_juridica", label: "Em Análise Jurídica" },
+            { value: "parcialmente_concluido", label: "Parcialmente Aprovado" },
+            { value: "concluido", label: "Aprovado" },
+            { value: "finalizado", label: "Finalizado" },
+            {
+              value: "parcialmente_rejeitado",
+              label: "Parcialmente Rejeitado",
+            },
+            { value: "rejeitado", label: "Rejeitado" },
+          ]}
+          filterType="select"
+        />
       ),
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
@@ -386,30 +407,55 @@ export default function SubmissionsTable({
           </Badge>
         );
       },
+      filterFn: (row, id, value) => {
+        const status = row.getValue(id) as string;
+        return status.toLowerCase() === value.toLowerCase();
+      },
     },
     {
       accessorKey: "isPaid",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Situação Pagamento" />
+        <DataTableColumnHeader
+          className="text-center justify-center"
+          column={column}
+          title="Pagamento"
+          options={[
+            { value: "true", label: "Confirmado" },
+            { value: "false", label: "Aguardando Pagamento" },
+          ]}
+          filterType="boolean"
+        />
       ),
       cell: ({ row }) => {
         const submission = row.original;
         return (
-          <Badge
-            variant={submission.isPaid ? "default" : "secondary"}
-            className={
-              submission.isPaid ? "bg-green-500 hover:bg-green-600" : ""
-            }
-          >
-            {submission.isPaid ? "Pago" : "Aguardando Pagamento"}
-          </Badge>
+          <div className="flex justify-center items-center">
+            <Badge
+              variant={submission.isPaid ? "default" : "secondary"}
+              className={cn(
+                "transition-all",
+                submission.isPaid ? "bg-green-500 hover:bg-green-300" : "",
+              )}
+            >
+              {submission.isPaid ? "Confirmado" : "Pendente"}
+            </Badge>
+          </div>
         );
+      },
+      filterFn: (row, id, value) => {
+        const isPaid = row.getValue(id) as boolean;
+        return isPaid === value;
       },
     },
     {
       accessorKey: "createdAt",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Data" />
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title="Data"
+          filterType="sort-only"
+        />
       ),
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as Date;
@@ -476,7 +522,7 @@ export default function SubmissionsTable({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <CardTitle>Envios de Clientes</CardTitle>
               <CardDescription>
@@ -487,7 +533,7 @@ export default function SubmissionsTable({
             </div>
 
             {selectedIds.length > 0 && (
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                 <div className="text-sm text-muted-foreground">
                   {selectedIds.length} item(s) selecionado(s) - Total:{" "}
                   {formatCurrency(selectedTotal)}
@@ -503,7 +549,7 @@ export default function SubmissionsTable({
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row lg:items-center lg:flex-shrink-0">
                   <DownloadClientsButton selectedSubmissionIds={selectedIds} />
                   <Button
                     onClick={handlePayment}
@@ -512,7 +558,7 @@ export default function SubmissionsTable({
                       selectedUnpaidSubmissions.length > 10 ||
                       selectedUnpaidSubmissions.length === 0
                     }
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full lg:w-auto"
                   >
                     <CreditCard className="h-4 w-4" />
                     {loading
@@ -526,7 +572,7 @@ export default function SubmissionsTable({
                       onClick={handleBulkDelete}
                       disabled={isDeleting}
                       variant="destructive"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 w-full lg:w-auto"
                     >
                       <Trash2 className="h-4 w-4" />
                       {isDeleting

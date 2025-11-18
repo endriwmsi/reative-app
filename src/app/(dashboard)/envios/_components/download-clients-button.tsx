@@ -83,7 +83,7 @@ export function DownloadClientsButton({
       onClick={handleDownload}
       disabled={isDownloading}
       variant="outline"
-      className="gap-2"
+      className="gap-2 w-full lg:w-auto"
     >
       <Download className="h-4 w-4" />
       {isDownloading
