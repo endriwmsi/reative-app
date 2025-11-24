@@ -1,6 +1,6 @@
 "use client";
-
 import { IconLogout } from "@tabler/icons-react";
+import { motion } from "framer-motion";
 import { Bell, Mail, Settings, User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
@@ -34,7 +34,12 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <motion.header
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+      className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)"
+    >
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
         {/* <Separator
@@ -169,6 +174,6 @@ export function SiteHeader() {
           </DropdownMenu>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }
