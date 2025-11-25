@@ -4,10 +4,10 @@ import { motion, type Variants } from "framer-motion";
 import { CreditCard, FileText, MapPin, Shield, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { SidebarMenu, SidebarMenuButton } from "../ui/sidebar";
 
-const sidebarNavItems = [
+export const sidebarNavItems = [
   {
     title: "Perfil",
     href: "/configuracoes/perfil",
@@ -85,9 +85,6 @@ export function SettingsSidebar() {
         <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">
           Configurações
         </h2>
-        <p className="text-xs text-muted-foreground mt-1">
-          Gerencie suas preferências.
-        </p>
       </div>
       <motion.nav
         className="space-y-0.5"

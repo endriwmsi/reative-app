@@ -10,19 +10,17 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { motion, type Variants } from "framer-motion";
-import Image from "next/image";
+import Link from "next/link";
 import type * as React from "react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { Logo } from "./logo";
 import NavAdmin from "./nav-admin";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
@@ -193,7 +191,6 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();
-
   const { data: session } = authClient.useSession();
 
   return (
@@ -204,41 +201,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           initial="hidden"
           animate="visible"
         >
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="data-[slot=sidebar-menu-button]:!p-1.5"
-              >
-                <a href="/dashboard">
-                  {state === "expanded" ? (
-                    <Image
-                      src="/assets/images/logo.svg"
-                      alt="Logo"
-                      width={150}
-                      height={40}
-                      className="h-8 w-auto"
-                    />
-                  ) : (
-                    <Image
-                      src="/assets/images/logo-mobile.svg"
-                      alt="Logo"
-                      width={150}
-                      height={40}
-                      className="h-8 w-auto"
-                    />
-                  )}
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <Link href="/dashboard">
+            <Logo variant={state === "expanded" ? "full" : "compact"} />
+          </Link>
         </motion.div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         {session?.user.role === "admin" && <NavAdmin items={data.admin} />}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="pl-0">
         <motion.div
           variants={footerVariants}
           initial="hidden"

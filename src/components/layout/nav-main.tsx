@@ -20,6 +20,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -171,7 +172,15 @@ export function NavMain({
                                     asChild
                                     isActive={isActive(subItem.url)}
                                   >
-                                    <Link href={subItem.url}>
+                                    <Link
+                                      href={subItem.url}
+                                      className={cn(
+                                        "w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-all",
+                                        pathname === item.url
+                                          ? "text-sidebar-foreground bg-sidebar-accent shadow-sm border border-sidebar-border"
+                                          : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50 border border-transparent",
+                                      )}
+                                    >
                                       <span>{subItem.title}</span>
                                     </Link>
                                   </SidebarMenuSubButton>
@@ -193,7 +202,15 @@ export function NavMain({
                         asChild
                         isActive={isActive(item.url)}
                       >
-                        <Link href={item.url}>
+                        <Link
+                          href={item.url}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-all",
+                            pathname === item.url
+                              ? "text-sidebar-foreground bg-sidebar-accent shadow-sm border border-sidebar-border"
+                              : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50 border border-transparent",
+                          )}
+                        >
                           {item.icon && <item.icon />}
                           <span>{item.title}</span>
                         </Link>

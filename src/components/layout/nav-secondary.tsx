@@ -3,6 +3,7 @@
 import type { Icon } from "@tabler/icons-react";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type * as React from "react";
 import {
   SidebarGroup,
@@ -11,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const hoverVariants: Variants = {
   hover: {
@@ -35,6 +37,8 @@ export function NavSecondary({
     icon: Icon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const pathname = usePathname();
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -47,7 +51,15 @@ export function NavSecondary({
                 whileHover="hover"
               >
                 <SidebarMenuButton asChild>
-                  <Link href={item.url}>
+                  <Link
+                    href={item.url}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-all",
+                      pathname.startsWith(item.url)
+                        ? "text-sidebar-foreground bg-sidebar-accent shadow-sm border border-sidebar-border"
+                        : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50 border border-transparent",
+                    )}
+                  >
                     <item.icon />
                     <span>{item.title}</span>
                   </Link>
