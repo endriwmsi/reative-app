@@ -13,7 +13,7 @@ import ProductsTable from "./_components/products-table";
 import ProductsView from "./_components/products-view";
 
 export const metadata: Metadata = {
-  title: "Meus Produtos",
+  title: "Hub LN - Meus Produtos",
   description: "Solicite serviços de forma fácil e rápida.",
 };
 

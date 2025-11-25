@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Separator } from "@/components/ui/separator";
 import { AddressForm } from "../_components/address-form";
+
+export const metadata: Metadata = {
+  title: "Hub LN - Endereço",
+  description: "Gerencie seu endereço e correspondências.",
+};
 
 export default async function AddressPage() {
   const session = await auth.api.getSession({

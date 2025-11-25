@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Separator } from "@/components/ui/separator";
 import { DocumentsForm } from "../_components/documents-form";
+
+export const metadata: Metadata = {
+  title: "Hub LN - Documentos",
+  description: "Gerencie seus documentos de identificação (CPF ou CNPJ).",
+};
 
 export default async function DocumentsPage() {
   const session = await auth.api.getSession({

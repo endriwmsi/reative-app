@@ -42,7 +42,7 @@ type SubmissionData = {
 };
 
 export const metadata: Metadata = {
-  title: "Meus Envios",
+  title: "Hub LN - Meus Envios",
   description: "Gerencie seus envios de forma fácil e rápida.",
 };
 

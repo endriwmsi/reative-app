@@ -198,7 +198,7 @@ export async function sendEmailAction({
   const mailOptions = {
     from: process.env.NODEMAILER_USER,
     to,
-    subject: `Reative Platform • ${subject}`,
+    subject: `HUB-LN• ${subject}`,
     html: `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -225,7 +225,7 @@ export async function sendEmailAction({
           <!-- Header with Golden Accent -->
           <div style="${emailTemplate.header}">
             <div style="${emailTemplate.logoSection}">
-              <h1 style="${emailTemplate.brand}">Reative Platform</h1>
+              <h1 style="${emailTemplate.brand}">HUB-LN</h1>
               <p style="${emailTemplate.tagline}">Excellence in Development</p>
             </div>
           </div>
@@ -257,14 +257,14 @@ export async function sendEmailAction({
           
           <!-- Elegant Footer -->
           <div style="${emailTemplate.footer}">
-            <h3 style="${emailTemplate.footerBrand}">Reative Platform</h3>
+            <h3 style="${emailTemplate.footerBrand}">Hub LN</h3>
             <hr style="${emailTemplate.accentLine}">
             <p style="${emailTemplate.footerDesc}">
               Transformando ideias em soluções digitais excepcionais.<br>
               Tecnologia de ponta com design sofisticado.
             </p>
             <p style="${emailTemplate.copyright}">
-              © ${currentYear} Reative Platform. Todos os direitos reservados.
+              © ${currentYear} Hub LN. Todos os direitos reservados.
             </p>
           </div>
           

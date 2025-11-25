@@ -1,3 +1,5 @@
+import Logo from "@/components/layout/logo";
+
 export default function AuthLayout({
   children,
 }: Readonly<{
@@ -29,8 +31,7 @@ export default function AuthLayout({
         <div className="w-full rounded-2xl border border-secondary/50 bg-secondary p-8 shadow-2xl md:w-[40%] md:rounded-l-2xl md:rounded-r-none md:p-14">
           {/* Logo */}
           <div className="mb-10">
-            <div className="text-2xl font-bold text-primary">Lorem Ipsum</div>
-            <div className="text-sm text-primary/50">Platform</div>
+            <Logo className="w-48" />
           </div>
 
           {/* Content with original padding */}

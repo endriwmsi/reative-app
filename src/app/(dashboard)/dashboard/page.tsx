@@ -6,8 +6,8 @@ import TopPartnersPodium from "./_components/top-partners-podium";
 import WelcomeMessage from "./_components/welcome-message";
 
 export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Ainda em construção",
+  title: "Hub LN - Dashboard",
+  description: "Dashboard principal do Hub LN.",
 };
 
 export default async function DashboardPage() {

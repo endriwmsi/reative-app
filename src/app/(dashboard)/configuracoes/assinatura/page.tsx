@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+export const metadata: Metadata = {
+  title: "Hub LN - Assinatura",
+  description: "Gerencie seu plano e informações de pagamento.",
+};
 
 export default function SubscriptionPage() {
   return (

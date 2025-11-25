@@ -10,7 +10,7 @@ import { auth } from "@/auth";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Gerenciamento de Usuários",
+  title: "Hub LN - Gerenciador de Usuários",
   description: "Gerenciar contas de usuários e aprovar novos cadastros.",
 };
 

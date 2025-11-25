@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+
+export const metadata: Metadata = {
+  title: "Hub LN - Segurança",
+  description: "Gerencie sua senha e segurança da conta.",
+};
 
 export default function SecurityPage() {
   return (

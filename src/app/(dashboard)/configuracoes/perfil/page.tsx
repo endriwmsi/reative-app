@@ -1,8 +1,14 @@
 import { UserIcon } from "lucide-react";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ProfileForm } from "../_components/profile-form";
+
+export const metadata: Metadata = {
+  title: "Hub LN - Informações pessoais",
+  description: "Detalhes básicos sobre sua conta.",
+};
 
 export default async function ProfilePage() {
   const session = await auth.api.getSession({

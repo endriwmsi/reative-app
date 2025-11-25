@@ -8,7 +8,7 @@ import CouponsTable from "@/components/coupons-table";
 import CreateCouponDialog from "@/components/create-coupon-dialog";
 
 export const metadata: Metadata = {
-  title: "Meus Cupons",
+  title: "Hub LN - Meus Cupons",
   description: "Gerencie seus cupons de forma fácil e rápida.",
 };
 
