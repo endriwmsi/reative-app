@@ -16,21 +16,21 @@ export default function SettingsLayout({
   return (
     <div className="flex flex-1 h-full overflow-hidden bg-sidebar">
       <SettingsSidebar />
-      <div className="flex-1 py-2 pr-2 pl-0 flex flex-col">
+      <div className="flex-1 flex flex-col md:py-2 md:pr-2 md:pl-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-          className="w-full h-full bg-background rounded-xl border border-sidebar-border shadow-sm flex flex-col overflow-hidden"
+          className="w-full h-full bg-background md:rounded-xl md:border md:border-sidebar-border md:shadow-sm flex flex-col overflow-hidden"
         >
           <SiteHeader />
-          <div className="flex-1 overflow-auto p-8 pb-24 md:pb-8">
+          <div className="flex-1 p-4 pb-24 md:p-8">
             <motion.div
               key={pathname}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut", delay: 0.2 }}
-              className="max-w-2xl mx-auto"
+              className="max-w-2xl mx-auto overflow-hidden"
             >
               {children}
             </motion.div>
