@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type React from "react";
 import { auth } from "@/auth";
+import { ChangelogModal } from "@/components/changelog-modal";
 import { DashboardSidebarWrapper } from "@/components/layout/dashboard-sidebar-wrapper";
 import { MainContentWrapper } from "@/components/layout/main-content-wrapper";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
       <DashboardSidebarWrapper />
       <SidebarInset>
         <MainContentWrapper>{children}</MainContentWrapper>
+        <ChangelogModal />
       </SidebarInset>
     </SidebarProvider>
   );
