@@ -19,6 +19,7 @@ export const getValidDomains = () => {
     "pocred.com.br",
     "rasolucoesfinanceira.com.br",
     "consulenzaconsultoria.com.br",
+    "restcred.com.br",
   ];
 
   return domains;

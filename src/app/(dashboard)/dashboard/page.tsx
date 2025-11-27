@@ -3,6 +3,7 @@ import { getDashboardMetrics } from "@/actions/dashboard/dashboard-metrics.actio
 import FutureFeaturesCard from "./_components/future-features-card";
 import SectionCards from "./_components/section-cards";
 import TopPartnersPodium from "./_components/top-partners-podium";
+import UpcomingFeatures from "./_components/upcoming-features";
 import WelcomeMessage from "./_components/welcome-message";
 
 export const metadata: Metadata = {
@@ -17,6 +18,8 @@ export default async function DashboardPage() {
     <div className="@container/main flex flex-1 flex-col gap-2">
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6">
         <WelcomeMessage />
+
+        <UpcomingFeatures />
 
         <SectionCards metrics={metrics} />
 
