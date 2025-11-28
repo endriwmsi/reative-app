@@ -2,8 +2,10 @@
 
 import {
   IconBrandWhatsapp,
+  IconChartArea,
   // IconChartBar,
   IconPhoto,
+  IconRobot,
   // IconRobot,
 } from "@tabler/icons-react";
 import Image from "next/image";
@@ -42,28 +44,30 @@ const features = [
     borderColor: "border-purple-500/20",
     iconColor: "text-purple-500",
   },
-  // {
-  //   id: 3,
-  //   title: "Automação de Vendas",
-  //   description: "Automatize seu processo comercial",
-  //   icon: IconRobot,
-  //   image: "/assets/images/automation-bg.jpg", // Placeholder
-  //   videoUrl: "",
-  //   color: "bg-blue-500/10",
-  //   borderColor: "border-blue-500/20",
-  //   iconColor: "text-blue-500",
-  // },
-  // {
-  //   id: 4,
-  //   title: "Analytics Avançado",
-  //   description: "Métricas detalhadas do seu negócio",
-  //   icon: IconChartBar,
-  //   image: "/assets/images/analytics-bg.jpg", // Placeholder
-  //   videoUrl: "",
-  //   color: "bg-orange-500/10",
-  //   borderColor: "border-orange-500/20",
-  //   iconColor: "text-orange-500",
-  // },
+  {
+    id: 3,
+    title: "Ferramentas de impulsão",
+    description: "Impulsione suas campanhas com nossas ferramentas",
+    icon: IconChartArea,
+    image: "/assets/images/more-tools-hubln.jpg",
+    videoUrl:
+      "https://www.reativemais.com.br/wp-content/uploads/2025/11/hub-ferramentas.mp4",
+    color: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
+    iconColor: "text-blue-500",
+  },
+  {
+    id: 4,
+    title: "SDR Automatizado",
+    description: "Automatize o contato inicial com seus leads",
+    icon: IconRobot,
+    image: "/assets/images/sdr-hubln.jpg",
+    videoUrl:
+      "https://www.reativemais.com.br/wp-content/uploads/2025/11/SDR.mp4",
+    color: "bg-orange-500/10",
+    borderColor: "border-orange-500/20",
+    iconColor: "text-orange-500",
+  },
 ];
 
 export default function UpcomingFeatures() {
@@ -75,7 +79,7 @@ export default function UpcomingFeatures() {
     <>
       <div className="w-full">
         <div className="overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0">
-          <div className="flex gap-4 px-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:px-6">
+          <div className="flex gap-4 px-4 lg:grid lg:grid-cols-4 lg:gap-4 lg:px-6">
             {features.map((feature) => (
               <button
                 type="button"
