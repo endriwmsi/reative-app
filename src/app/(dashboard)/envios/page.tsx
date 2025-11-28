@@ -101,7 +101,7 @@ export default async function EnviosPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-2 lg:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Envios de Clientes</h1>

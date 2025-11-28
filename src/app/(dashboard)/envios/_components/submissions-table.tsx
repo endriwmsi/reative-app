@@ -110,9 +110,19 @@ export default function SubmissionsTable({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      // Selecionar todos os envios (pagos e não pagos) para permitir exportação
-      const allIds = submissions.map((submission) => submission.id);
-      setSelectedIds(allIds);
+      // Selecionar apenas envios não pagos (máximo 10)
+      const unpaidSubmissions = submissions.filter(
+        (submission) => !submission.isPaid,
+      );
+      const unpaidIds = unpaidSubmissions
+        .slice(0, 10)
+        .map((submission) => submission.id);
+
+      if (unpaidSubmissions.length > 10) {
+        toast.info("Seleção automática limitada a 10 envios.");
+      }
+
+      setSelectedIds(unpaidIds);
     } else {
       setSelectedIds([]);
     }
@@ -120,6 +130,10 @@ export default function SubmissionsTable({
 
   const handleSelectItem = (id: string, checked: boolean) => {
     if (checked) {
+      if (selectedIds.length >= 10) {
+        toast.error("Máximo de 10 envios permitidos.");
+        return;
+      }
       setSelectedIds((prev) => [...prev, id]);
     } else {
       setSelectedIds((prev) => prev.filter((itemId) => itemId !== id));
@@ -150,6 +164,21 @@ export default function SubmissionsTable({
 
     await createPayment(unpaidSelectedIds);
     setSelectedIds([]);
+  };
+
+  const handleQuickPay = async () => {
+    const unpaidSubmissions = submissions.filter((s) => !s.isPaid);
+
+    if (unpaidSubmissions.length === 0) {
+      toast.error("Não há envios pendentes de pagamento.");
+      return;
+    }
+
+    const toPay = unpaidSubmissions.slice(0, 10);
+    const idsToPay = toPay.map((s) => s.id);
+
+    setSelectedIds(idsToPay);
+    await createPayment(idsToPay);
   };
 
   const handleBulkDelete = () => {
@@ -288,29 +317,34 @@ export default function SubmissionsTable({
     {
       id: "select",
       header: () => {
-        const allSelected =
-          submissions.length > 0 &&
-          submissions.every((submission) =>
+        const unpaidSubmissions = submissions.filter((s) => !s.isPaid);
+        const allUnpaidSelected =
+          unpaidSubmissions.length > 0 &&
+          unpaidSubmissions.every((submission) =>
             selectedIds.includes(submission.id),
           );
 
         return (
           <Checkbox
-            checked={allSelected}
+            checked={allUnpaidSelected}
             onCheckedChange={handleSelectAll}
-            disabled={submissions.length === 0}
-            aria-label="Selecionar todos"
+            disabled={unpaidSubmissions.length === 0}
+            aria-label="Selecionar todos não pagos"
           />
         );
       },
       cell: ({ row }) => {
         const submission = row.original;
+        const isSelected = selectedIds.includes(submission.id);
+        const isLimitReached = selectedIds.length >= 10;
+
         return (
           <Checkbox
-            checked={selectedIds.includes(submission.id)}
+            checked={isSelected}
             onCheckedChange={(checked) =>
               handleSelectItem(submission.id, checked as boolean)
             }
+            disabled={submission.isPaid || (!isSelected && isLimitReached)}
             aria-label="Selecionar item"
           />
         );
@@ -531,6 +565,17 @@ export default function SubmissionsTable({
                   : `${submissions.length} envio(s) encontrado(s) (seus envios e de seus indicados).`}
               </CardDescription>
             </div>
+
+            {selectedIds.length === 0 && submissions.some((s) => !s.isPaid) && (
+              <Button
+                onClick={handleQuickPay}
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
+                <CreditCard className="h-4 w-4" />
+                Selecionar e Pagar (Auto)
+              </Button>
+            )}
 
             {selectedIds.length > 0 && (
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
