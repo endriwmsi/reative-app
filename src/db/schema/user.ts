@@ -40,6 +40,10 @@ export const user = pgTable("user", {
   uf: text("uf").notNull(),
   cep: text("cep").notNull(),
 
+  isSubscribed: boolean("is_subscribed").notNull().default(false),
+
+  abacatePayCustomerId: text("abacate_pay_customer_id"),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

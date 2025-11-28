@@ -1,12 +1,13 @@
 "use server";
 
+import AbacatePay from "abacatepay-nodejs-sdk";
 import { APIError } from "better-auth/api";
 import { eq, or } from "drizzle-orm";
 import type { z } from "zod";
 import type { registerSchema } from "@/app/(auth)/_schemas/register-schemas";
 import { auth, type ErrorCode } from "@/auth";
 import { db } from "@/db/client";
-import { user } from "@/db/schema/user";
+import { subscription, user } from "@/db/schema";
 import {
   cleanCNPJ,
   cleanCPF,
@@ -105,25 +106,71 @@ export async function signUpEmailAction(data: formData) {
       }
     }
 
-    await auth.api.signUpEmail({
-      body: {
-        name: data.fullname,
-        email: data.email,
-        password: data.password,
-        phone: data.phone,
-        cpf: cleanedCPF,
-        cnpj: cleanedCNPJ,
-        street: data.street,
-        number: data.number,
-        complement: data.complement,
-        neighborhood: data.neighborhood,
-        city: data.city,
-        uf: data.state,
-        cep: data.cep,
-        referralCode,
-        referredBy: validReferredBy,
-      },
+    const userData = {
+      name: data.fullname,
+      email: data.email,
+      password: data.password,
+      phone: data.phone,
+      cpf: cleanedCPF,
+      cnpj: cleanedCNPJ,
+      street: data.street,
+      number: data.number,
+      complement: data.complement,
+      neighborhood: data.neighborhood,
+      city: data.city,
+      uf: data.state,
+      cep: data.cep,
+      referralCode,
+      referredBy: validReferredBy,
+    };
+
+    const authResult = await auth.api.signUpEmail({
+      body: userData,
     });
+
+    try {
+      const abacate = AbacatePay(process.env.ABACATEPAY_API_KEY || "");
+
+      const customerData = {
+        name: data.fullname,
+        cellphone: data.phone,
+        email: data.email,
+        taxId: cleanedCPF || cleanedCNPJ, // Use CPF se presente, senão CNPJ
+      };
+
+      const abacatePayCustomer = await abacate.customer.create(customerData);
+
+      if (abacatePayCustomer.error) {
+        console.error(
+          "Erro ao criar cliente na AbacatePay:",
+          abacatePayCustomer.error,
+        );
+        // Lidar com o erro (pode ser um bom momento para registrar o erro e continuar)
+      } else {
+        // Salvar o customerId da AbacatePay no seu banco de dados
+        await db
+          .update(user)
+          // biome-ignore lint/style/noNonNullAssertion: It will work.
+          .set({ abacatePayCustomerId: abacatePayCustomer.data!.id })
+          .where(eq(user.email, data.email));
+
+        // Criar a entrada na tabela subscriptions
+        const trialExpiresAt = new Date();
+        trialExpiresAt.setDate(trialExpiresAt.getDate() + 5); // Trial de 5 dias
+
+        await db.insert(subscription).values({
+          userId: authResult.user.id,
+          abacatePayBillingId: "",
+          status: "trial",
+          startDate: new Date(),
+          endDate: trialExpiresAt,
+          trialExpiresAt: trialExpiresAt,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao integrar com AbacatePay:", error);
+      // Lidar com o erro de integração
+    }
 
     return { error: null };
   } catch (error) {

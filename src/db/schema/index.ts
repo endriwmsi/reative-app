@@ -4,6 +4,7 @@ export * from "./coupon";
 export * from "./product";
 export * from "./session";
 export * from "./submission";
+export * from "./subscription";
 export * from "./user";
 export * from "./user-product-price";
 export * from "./verification";

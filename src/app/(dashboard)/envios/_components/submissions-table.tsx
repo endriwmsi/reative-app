@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { deleteSubmission } from "@/actions/submission/submission.action";
 import { deleteMultipleSubmissions } from "@/actions/submission/submission-bulk.action";
 import { DataTable, DataTableColumnHeader } from "@/components/data-table";
-import { PaymentModal } from "@/components/payment/payment-modal";
+import { PaymentModal } from "@/components/payment/asaas/payment-modal";
 import {
   AlertDialog,
   AlertDialogAction,

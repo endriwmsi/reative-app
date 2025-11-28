@@ -55,11 +55,6 @@ export default async function EnviosPage() {
     redirect("/login");
   }
 
-  // Verificar se o usuário é admin através da propriedade do user
-  const isAdmin =
-    Boolean((session.user as Record<string, unknown>).isAdmin) || false;
-
-  // Verificar se o usuário foi indicado para usar preços personalizados
   const [userData] = await db
     .select({
       id: user.id,
@@ -70,7 +65,7 @@ export default async function EnviosPage() {
 
   // Buscar envios, produtos e saldo em paralelo
   const [submissionsResult, productsResult, balanceResult] = await Promise.all([
-    getUserSubmissions(session.user.id, isAdmin),
+    getUserSubmissions(session.user.id, session.user.role === "admin"),
     // Se o usuário foi indicado, usar preços personalizados do indicador
     userData?.referredBy
       ? getProductsForUser(session.user.id)
@@ -111,7 +106,7 @@ export default async function EnviosPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Envios de Clientes</h1>
           <p className="text-muted-foreground">
-            {isAdmin
+            {session.user.role === "admin"
               ? "Gerencie todos os envios de clientes da plataforma."
               : "Visualize seus envios e os envios dos seus indicados."}
           </p>
@@ -194,7 +189,7 @@ export default async function EnviosPage() {
       <SubmissionsTable
         submissions={submissionsResult.data as SubmissionData[]}
         userId={session.user.id}
-        isAdmin={isAdmin}
+        isAdmin={session.user.role === "admin"}
       />
     </div>
   );

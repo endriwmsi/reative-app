@@ -1,6 +1,6 @@
+import { CrownIcon } from "lucide-react";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { SubscriptionView } from "@/app/(dashboard)/configuracoes/_components/subscription-view";
 
 export const metadata: Metadata = {
   title: "Hub LN - Assinatura",
@@ -10,24 +10,19 @@ export const metadata: Metadata = {
 export default function SubscriptionPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Assinatura</h3>
-        <p className="text-sm text-muted-foreground">
-          Gerencie seu plano e informações de pagamento.
-        </p>
-      </div>
-      <Separator />
-      <div className="rounded-lg border p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="font-medium">Plano Atual</h4>
-            <p className="text-sm text-muted-foreground">
-              Você está no plano Gratuito.
-            </p>
-          </div>
-          <Button variant="outline">Gerenciar Assinatura</Button>
+      <div className="flex space-x-3 mb-6">
+        <div className="bg-secondary p-3 rounded-md flex items-center justify-center">
+          <CrownIcon className="h-6 w-6" />
+        </div>
+
+        <div className="flex flex-col">
+          <h3 className="text-md font-medium">Plano & Assinatura</h3>
+          <p className="text-sm text-muted-foreground">
+            Gerencie seu plano e informações de pagamento.
+          </p>
         </div>
       </div>
+      <SubscriptionView />
     </div>
   );
 }

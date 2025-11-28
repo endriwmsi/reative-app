@@ -1,6 +1,6 @@
 "use client";
 
-import { Progress } from "../ui/progress";
+import { Progress } from "../../ui/progress";
 
 interface PaymentCheckProgressProps {
   isChecking: boolean;
