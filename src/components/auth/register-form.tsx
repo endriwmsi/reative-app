@@ -21,7 +21,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ referralCode }: RegisterFormProps) {
   const { formData, currentStep, isPending, nextStep, prevStep, onSubmit } =
-    useRegisterForm(referralCode);
+    useRegisterForm(referralCode ?? "1586");
 
   const renderStepContent = () => {
     switch (currentStep) {

@@ -12,7 +12,7 @@ import {
   step3Schema,
 } from "@/app/(auth)/_schemas/register-schemas";
 
-export function useRegisterForm(referralCode: string | null = null) {
+export function useRegisterForm(referralCode: string) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
