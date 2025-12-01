@@ -110,19 +110,8 @@ export default function SubmissionsTable({
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      // Selecionar apenas envios não pagos (máximo 10)
-      const unpaidSubmissions = submissions.filter(
-        (submission) => !submission.isPaid,
-      );
-      const unpaidIds = unpaidSubmissions
-        .slice(0, 10)
-        .map((submission) => submission.id);
-
-      if (unpaidSubmissions.length > 10) {
-        toast.info("Seleção automática limitada a 10 envios.");
-      }
-
-      setSelectedIds(unpaidIds);
+      const allIds = submissions.map((submission) => submission.id);
+      setSelectedIds(allIds);
     } else {
       setSelectedIds([]);
     }
@@ -130,10 +119,6 @@ export default function SubmissionsTable({
 
   const handleSelectItem = (id: string, checked: boolean) => {
     if (checked) {
-      if (selectedIds.length >= 10) {
-        toast.error("Máximo de 10 envios permitidos.");
-        return;
-      }
       setSelectedIds((prev) => [...prev, id]);
     } else {
       setSelectedIds((prev) => prev.filter((itemId) => itemId !== id));
@@ -317,34 +302,29 @@ export default function SubmissionsTable({
     {
       id: "select",
       header: () => {
-        const unpaidSubmissions = submissions.filter((s) => !s.isPaid);
-        const allUnpaidSelected =
-          unpaidSubmissions.length > 0 &&
-          unpaidSubmissions.every((submission) =>
+        const allSelected =
+          submissions.length > 0 &&
+          submissions.every((submission) =>
             selectedIds.includes(submission.id),
           );
 
         return (
           <Checkbox
-            checked={allUnpaidSelected}
+            checked={allSelected}
             onCheckedChange={handleSelectAll}
-            disabled={unpaidSubmissions.length === 0}
-            aria-label="Selecionar todos não pagos"
+            disabled={submissions.length === 0}
+            aria-label="Selecionar todos"
           />
         );
       },
       cell: ({ row }) => {
         const submission = row.original;
-        const isSelected = selectedIds.includes(submission.id);
-        const isLimitReached = selectedIds.length >= 10;
-
         return (
           <Checkbox
-            checked={isSelected}
+            checked={selectedIds.includes(submission.id)}
             onCheckedChange={(checked) =>
               handleSelectItem(submission.id, checked as boolean)
             }
-            disabled={submission.isPaid || (!isSelected && isLimitReached)}
             aria-label="Selecionar item"
           />
         );
