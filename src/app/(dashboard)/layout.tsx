@@ -8,6 +8,7 @@ import { ChangelogModal } from "@/components/changelog-modal";
 import { DashboardSidebarWrapper } from "@/components/layout/dashboard-sidebar-wrapper";
 import { MainContentWrapper } from "@/components/layout/main-content-wrapper";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { db } from "@/db/client";
 import { subscription } from "@/db/schema";
 import {
@@ -49,6 +50,7 @@ export default async function DashboardLayout({
         <SidebarInset>
           <MainContentWrapper>{children}</MainContentWrapper>
           <ChangelogModal />
+          <WhatsAppButton />
         </SidebarInset>
       </SidebarProvider>
     </SubscriptionProvider>

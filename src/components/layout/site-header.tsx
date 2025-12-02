@@ -1,7 +1,8 @@
 "use client";
 import { IconLogout } from "@tabler/icons-react";
 import { motion } from "framer-motion";
-import { Bell, Mail, Settings, User } from "lucide-react";
+import { Bell, Settings, User } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -138,37 +139,45 @@ export function SiteHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/configuracoes/perfil"
+                  className="flex w-full cursor-pointer"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Pefil
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Mail className="mr-2 h-4 w-4" />
                 Messages
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+              </DropdownMenuItem> */}
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/configuracoes"
+                  className="flex w-full cursor-pointer"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurações
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Button
-                  onClick={async () => {
-                    await authClient.signOut({
-                      fetchOptions: {
-                        onSuccess: () => {
-                          redirect("/login");
-                        },
+              <DropdownMenuItem
+                onClick={async () => {
+                  await authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        redirect("/login");
                       },
-                    });
-                  }}
-                  variant="ghost"
-                >
-                  <IconLogout />
-                  Log out
-                </Button>
+                    },
+                  });
+                }}
+                className="cursor-pointer"
+              >
+                <IconLogout />
+                Sair
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

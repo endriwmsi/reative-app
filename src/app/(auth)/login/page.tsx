@@ -22,6 +22,15 @@ const LoginPage = () => {
           Crie uma aqui
         </Link>
       </div>
+
+      <div className="mt-4 text-center text-xs text-muted-foreground">
+        <Link
+          href="/termos-e-condicoes"
+          className="underline hover:text-primary"
+        >
+          Termos e Condições
+        </Link>
+      </div>
     </div>
   );
 };

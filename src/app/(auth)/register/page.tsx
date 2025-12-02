@@ -29,6 +29,16 @@ const RegisterPage = async ({ searchParams }: RegisterPageProps) => {
           Entre agora
         </Link>
       </div>
+
+      <div className="mt-4 text-center text-xs text-muted-foreground">
+        Ao se registrar, você concorda com nossos{" "}
+        <Link
+          href="/termos-e-condicoes"
+          className="underline hover:text-primary"
+        >
+          Termos e Condições
+        </Link>
+      </div>
     </div>
   );
 };
