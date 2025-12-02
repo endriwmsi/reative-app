@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function WhatsAppButton() {
-  // Número de telefone para suporte (substitua pelo número real)
-  const phoneNumber = "5511988771389";
+  const phoneNumber = "5511962261564";
   const message = "Olá! Preciso de ajuda com a plataforma.";
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 

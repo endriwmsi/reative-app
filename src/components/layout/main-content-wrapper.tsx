@@ -38,7 +38,7 @@ export function MainContentWrapper({
       <div className="flex flex-col">
         <AnnouncementBanner
           type="info"
-          message="Próxima ação de limpa nome: 28/11/2025"
+          message="Próxima ação de limpa nome dia 05/12/2025 até 08/12/2025 as 20:00h"
         />
       </div>
       <motion.div
