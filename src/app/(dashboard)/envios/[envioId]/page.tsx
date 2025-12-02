@@ -24,6 +24,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSubmissionById } from "@/actions/submission/submission.action";
 import { getSubmissionClients } from "@/actions/submission/submission-client.action";
+import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 type SubmissionDetail = {
@@ -43,6 +44,8 @@ type SubmissionDetail = {
   userId?: string;
   productId?: number;
   notes?: string;
+  isDownloaded: boolean;
+  downloadedAt?: Date | null;
 };
 
 type ClientData = {
@@ -81,8 +84,7 @@ export default async function EnvioDetailPage({
     redirect("/login");
   }
 
-  const isAdmin =
-    Boolean((session.user as Record<string, unknown>).isAdmin) || false;
+  const isAdmin = session.user.role === "admin";
 
   if (Number.isNaN(envioId)) {
     redirect("/envios");
@@ -143,6 +145,14 @@ export default async function EnvioDetailPage({
                 Criado em {formatDate(submission.createdAt)}
               </p>
             </div>
+            {isAdmin && submission.isDownloaded && (
+              <Badge
+                variant="outline"
+                className="border-blue-500 text-blue-500 bg-blue-50"
+              >
+                Exportado
+              </Badge>
+            )}
           </div>
         </div>
         {/* 

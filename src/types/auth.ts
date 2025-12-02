@@ -1,6 +1,7 @@
 declare module "better-auth/types" {
   interface User {
     isAdmin?: boolean;
+    role?: string;
   }
 
   interface Session {
@@ -23,6 +24,7 @@ declare module "better-auth/types" {
       referralCode: string;
       referredBy?: string;
       isAdmin: boolean;
+      role?: string;
     };
   }
 }

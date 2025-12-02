@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ interface DownloadClientsButtonProps {
 export function DownloadClientsButton({
   selectedSubmissionIds,
 }: DownloadClientsButtonProps) {
+  const router = useRouter();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -68,6 +70,7 @@ export function DownloadClientsButton({
       document.body.removeChild(link);
 
       toast.success("Download concluído com sucesso!");
+      router.refresh();
     } catch (error) {
       console.error("Erro no download:", error);
       toast.error(

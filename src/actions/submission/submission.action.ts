@@ -206,6 +206,8 @@ export async function getUserSubmissions(userId: string, isAdmin = false) {
           paymentDate: submission.paymentDate,
           paymentId: submission.paymentId,
           paymentStatus: submission.paymentStatus,
+          isDownloaded: submission.isDownloaded,
+          downloadedAt: submission.downloadedAt,
         })
         .from(submission)
         .leftJoin(product, eq(submission.productId, product.id))
@@ -241,6 +243,8 @@ export async function getUserSubmissions(userId: string, isAdmin = false) {
           paymentDate: submission.paymentDate,
           paymentId: submission.paymentId,
           paymentStatus: submission.paymentStatus,
+          isDownloaded: submission.isDownloaded,
+          downloadedAt: submission.downloadedAt,
         })
         .from(submission)
         .leftJoin(product, eq(submission.productId, product.id))
@@ -353,6 +357,8 @@ export async function getSubmissionById(
         userEmail: user.email,
         userId: submission.userId,
         productId: submission.productId,
+        isDownloaded: submission.isDownloaded,
+        downloadedAt: submission.downloadedAt,
       })
       .from(submission)
       .innerJoin(product, eq(submission.productId, product.id))

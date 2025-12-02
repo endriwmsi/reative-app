@@ -39,6 +39,8 @@ type SubmissionData = {
   paymentDate?: Date | null;
   paymentId?: string | null;
   paymentStatus?: string | null;
+  isDownloaded: boolean;
+  downloadedAt?: Date | null;
 };
 
 export const metadata: Metadata = {

@@ -59,6 +59,8 @@ interface SubmissionData {
   paymentDate?: Date | null;
   paymentId?: string | null;
   paymentStatus?: string | null;
+  isDownloaded: boolean;
+  downloadedAt?: Date | null;
 }
 
 interface SubmissionsTableProps {
@@ -461,6 +463,47 @@ export default function SubmissionsTable({
         return isPaid === value;
       },
     },
+    ...(isAdmin
+      ? [
+          {
+            accessorKey: "isDownloaded",
+            header: ({ column }) => (
+              <DataTableColumnHeader
+                className="text-center justify-center"
+                column={column}
+                title="Exportado"
+                options={[
+                  { value: "true", label: "Sim" },
+                  { value: "false", label: "Não" },
+                ]}
+                filterType="boolean"
+              />
+            ),
+            cell: ({ row }) => {
+              const submission = row.original;
+              return (
+                <div className="flex justify-center items-center">
+                  <Badge
+                    variant={submission.isDownloaded ? "outline" : "secondary"}
+                    className={cn(
+                      "transition-all",
+                      submission.isDownloaded
+                        ? "border-blue-500 text-blue-500 bg-blue-50"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {submission.isDownloaded ? "Sim" : "Não"}
+                  </Badge>
+                </div>
+              );
+            },
+            filterFn: (row, id, value) => {
+              const isDownloaded = row.getValue(id) as boolean;
+              return isDownloaded === value;
+            },
+          } as ColumnDef<SubmissionData>,
+        ]
+      : []),
     {
       accessorKey: "createdAt",
       header: ({ column }) => (

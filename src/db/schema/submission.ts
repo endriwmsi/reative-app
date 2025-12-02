@@ -48,6 +48,10 @@ export const submission = pgTable("submission", {
   // Observações do envio
   notes: text("notes"),
 
+  // Campos de download
+  isDownloaded: boolean("is_downloaded").notNull().default(false),
+  downloadedAt: timestamp("downloaded_at"),
+
   // Campos de pagamento
   isPaid: boolean("is_paid").notNull().default(false),
   paymentId: text("payment_id"), // ID do pagamento no Asaas

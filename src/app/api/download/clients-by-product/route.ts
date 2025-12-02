@@ -1,9 +1,13 @@
+import { inArray } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { getClientsGroupedByProduct } from "@/actions/submission/download-clients.action";
 import { auth } from "@/auth";
+import { db } from "@/db/client";
+import { submission } from "@/db/schema";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +49,14 @@ export async function POST(request: NextRequest) {
     }
 
     const productGroups = result.data;
+
+    // Coletar todos os IDs de envio
+    const allSubmissionIds = new Set<string>();
+    for (const group of productGroups) {
+      for (const client of group.clients) {
+        allSubmissionIds.add(client.submissionId);
+      }
+    }
 
     // Criar um arquivo Excel com múltiplas abas (sheets) - uma para cada produto
     const workbook = XLSX.utils.book_new();
@@ -101,6 +113,19 @@ export async function POST(request: NextRequest) {
       type: "buffer",
       bookType: "xlsx",
     });
+
+    // Marcar envios como baixados
+    if (allSubmissionIds.size > 0) {
+      await db
+        .update(submission)
+        .set({
+          isDownloaded: true,
+          downloadedAt: new Date(),
+        })
+        .where(inArray(submission.id, Array.from(allSubmissionIds)));
+
+      revalidatePath("/envios");
+    }
 
     // Definir nome do arquivo baseado nos produtos
     const currentDate = new Date()
