@@ -16,14 +16,14 @@ export function ChangelogModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const hasSeenChangelog = localStorage.getItem("changelog-2025-11-27");
+    const hasSeenChangelog = localStorage.getItem("changelog-2025-12-04");
     if (!hasSeenChangelog) {
       setOpen(true);
     }
   }, []);
 
   const handleClose = () => {
-    localStorage.setItem("changelog-2025-11-27", "true");
+    localStorage.setItem("changelog-2025-12-04", "true");
     setOpen(false);
   };
 
@@ -61,22 +61,22 @@ export function ChangelogModal() {
           {/* New Features */}
           <div>
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Check className="h-5 w-5 text-green-500" />
-              Novas Funcionalidades (Até o fim de dezembro de 2025)
+              <Check className="h-5 w-5 text-green-500" />O que há de novo?
             </h3>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-2">
-              <li>Consulta de CPF e CNPJ</li>
-              <li>Consulta Serasa, SPC & Boa Vista</li>
+              <li>Solicitação de Capital de Giro</li>
             </ul>
           </div>
 
           {/* Future Features */}
           <div>
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-500" />
-              Em Breve
+              <Calendar className="h-5 w-5 text-blue-500" />O que há por vir
+              (até o fim de dezembro)
             </h3>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-2">
+              <li>Consulta de CPF e CNPJ</li>
+              <li>Consulta Serasa, SPC & Boa Vista</li>
               <li>CRM integrado para WhatsApp</li>
               <li>Painel de criativos de alta conversão (Limpa Nome)</li>
               <li>Melhorias significativas de performance</li>

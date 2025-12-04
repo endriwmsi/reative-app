@@ -2,6 +2,7 @@
 
 import {
   IconDashboard,
+  IconMoneybag,
   IconNetwork,
   IconPackage,
   IconSend,
@@ -77,6 +78,11 @@ const data = {
       title: "Cupons",
       url: "/cupons",
       icon: IconTicket,
+    },
+    {
+      title: "Capital de Giro",
+      url: "/solicitacoes-capital-giro",
+      icon: IconMoneybag,
     },
     {
       title: "Indicações",

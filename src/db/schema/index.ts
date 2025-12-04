@@ -1,4 +1,5 @@
 export * from "./account";
+export * from "./capital-giro";
 export * from "./commission-earnings";
 export * from "./coupon";
 export * from "./product";
