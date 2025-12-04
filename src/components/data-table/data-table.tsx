@@ -3,7 +3,7 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type FilterFn,
+  type FilterFnOption,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -31,7 +31,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   searchPlaceholder?: string;
-  globalFilterFn?: FilterFn<TData> | string;
+  globalFilterFn?: FilterFnOption<TData>;
 }
 
 export function DataTable<TData, TValue>({
