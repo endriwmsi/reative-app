@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "./user";
 
 export const capitalGiroStatusEnum = pgEnum("capital_giro_status", [
@@ -32,6 +32,9 @@ export const capitalGiro = pgTable("capital_giro", {
   valorRestricao: text("valor_restricao"),
 
   status: capitalGiroStatusEnum("status").default("pending").notNull(),
+
+  isDownloaded: boolean("is_downloaded").default(false).notNull(),
+  downloadedAt: timestamp("downloaded_at"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

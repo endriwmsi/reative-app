@@ -28,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { DownloadSolicitationsButton } from "./download-solicitations-button";
 
 interface CapitalGiro {
   id: string;
@@ -63,6 +65,8 @@ interface CapitalGiro {
   temRestricao: string;
   valorRestricao?: string | null;
   status: "pending" | "analyzing" | "approved" | "rejected";
+  isDownloaded: boolean;
+  downloadedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -104,10 +108,28 @@ export default function SolicitationsTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDeleteClick = (solicitation: CapitalGiro) => {
     setSolicitationToDelete(solicitation);
     setDeleteDialogOpen(true);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = solicitations.map((s) => s.id);
+      setSelectedIds(allIds);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectItem = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((itemId) => itemId !== id));
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -119,6 +141,9 @@ export default function SolicitationsTable({
       if (result.success) {
         toast.success("Solicitação removida com sucesso!");
         setDeleteDialogOpen(false);
+        setSelectedIds((prev) =>
+          prev.filter((id) => id !== solicitationToDelete.id),
+        );
       } else {
         toast.error(result.error || "Erro ao remover solicitação.");
       }
@@ -150,6 +175,37 @@ export default function SolicitationsTable({
   };
 
   const columns: ColumnDef<CapitalGiro>[] = [
+    {
+      id: "select",
+      header: () => {
+        const allSelected =
+          solicitations.length > 0 &&
+          solicitations.every((s) => selectedIds.includes(s.id));
+
+        return (
+          <Checkbox
+            checked={allSelected}
+            onCheckedChange={handleSelectAll}
+            disabled={solicitations.length === 0}
+            aria-label="Selecionar todos"
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const solicitation = row.original;
+        return (
+          <Checkbox
+            checked={selectedIds.includes(solicitation.id)}
+            onCheckedChange={(checked) =>
+              handleSelectItem(solicitation.id, checked as boolean)
+            }
+            aria-label="Selecionar item"
+          />
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -223,6 +279,47 @@ export default function SolicitationsTable({
         return value.includes(row.getValue(id));
       },
     },
+    ...(isAdmin
+      ? [
+          {
+            accessorKey: "isDownloaded",
+            header: ({ column }) => (
+              <DataTableColumnHeader
+                className="text-center justify-center"
+                column={column}
+                title="Exportado"
+                options={[
+                  { value: "true", label: "Sim" },
+                  { value: "false", label: "Não" },
+                ]}
+                filterType="boolean"
+              />
+            ),
+            cell: ({ row }) => {
+              const isDownloaded = row.original.isDownloaded;
+              return (
+                <div className="flex justify-center items-center">
+                  <Badge
+                    variant={isDownloaded ? "outline" : "secondary"}
+                    className={cn(
+                      "transition-all",
+                      isDownloaded
+                        ? "border-blue-500 text-blue-500 bg-blue-50"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {isDownloaded ? "Sim" : "Não"}
+                  </Badge>
+                </div>
+              );
+            },
+            filterFn: (row, id, value) => {
+              const isDownloaded = row.getValue(id) as boolean;
+              return isDownloaded === value;
+            },
+          } as ColumnDef<CapitalGiro>,
+        ]
+      : []),
     {
       accessorKey: "createdAt",
       header: ({ column }) => (
@@ -317,10 +414,26 @@ export default function SolicitationsTable({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Solicitações Recentes</CardTitle>
-          <CardDescription>
-            Gerencie as solicitações de capital de giro.
-          </CardDescription>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <CardTitle>Solicitações Recentes</CardTitle>
+              <CardDescription>
+                Gerencie as solicitações de capital de giro.
+              </CardDescription>
+            </div>
+
+            {isAdmin && selectedIds.length > 0 && (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                <div className="text-sm text-muted-foreground">
+                  {selectedIds.length} item(s) selecionado(s)
+                </div>
+                <DownloadSolicitationsButton
+                  selectedIds={selectedIds}
+                  onSuccess={() => setSelectedIds([])}
+                />
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable

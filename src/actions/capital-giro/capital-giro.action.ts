@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -8,6 +8,41 @@ import type { SolicitacaoFormValues } from "@/app/(dashboard)/solicitacoes-capit
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { capitalGiro, user } from "@/db/schema";
+
+export async function markCapitalGiroAsDownloaded(ids: string[]) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user) {
+      return { success: false, error: "Usuário não autenticado" };
+    }
+
+    const [currentUser] = await db
+      .select({ isAdmin: user.isAdmin })
+      .from(user)
+      .where(eq(user.id, session.user.id));
+
+    if (!currentUser?.isAdmin) {
+      return { success: false, error: "Permissão negada" };
+    }
+
+    await db
+      .update(capitalGiro)
+      .set({
+        isDownloaded: true,
+        downloadedAt: new Date(),
+      })
+      .where(inArray(capitalGiro.id, ids));
+
+    revalidatePath("/solicitacoes-capital-giro");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao marcar como baixado:", error);
+    return { success: false, error: "Erro ao marcar como baixado" };
+  }
+}
 
 export async function createCapitalGiro(data: SolicitacaoFormValues) {
   try {
