@@ -115,6 +115,20 @@ export function UsersTable({ users }: UserTableProps) {
       },
     },
     {
+      accessorKey: "referredByEmail",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Indicado por" />
+      ),
+      cell: ({ row }) => {
+        const email = row.getValue("referredByEmail") as string | null;
+        return (
+          <div className="max-w-[200px] truncate font-mono text-sm">
+            {email || "-"}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "emailVerified",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />

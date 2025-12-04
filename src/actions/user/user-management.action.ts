@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { aliasedTable, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/client";
 import { user } from "@/db/schema";
@@ -15,6 +15,7 @@ export interface User {
   cnpj: string | null;
   isAdmin: boolean;
   createdAt: Date;
+  referredByEmail?: string | null;
 }
 
 /**
@@ -70,6 +71,8 @@ export async function getAllUsers(): Promise<{
   error?: string;
 }> {
   try {
+    const referrer = aliasedTable(user, "referrer");
+
     const users = await db
       .select({
         id: user.id,
@@ -81,8 +84,10 @@ export async function getAllUsers(): Promise<{
         cnpj: user.cnpj,
         isAdmin: user.isAdmin,
         createdAt: user.createdAt,
+        referredByEmail: referrer.email,
       })
       .from(user)
+      .leftJoin(referrer, eq(user.referredBy, referrer.referralCode))
       .orderBy(user.createdAt);
 
     return {
