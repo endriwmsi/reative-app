@@ -1,6 +1,6 @@
 "use server";
 
-import { aliasedTable, eq } from "drizzle-orm";
+import { aliasedTable, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/client";
 import { user } from "@/db/schema";
@@ -88,7 +88,7 @@ export async function getAllUsers(): Promise<{
       })
       .from(user)
       .leftJoin(referrer, eq(user.referredBy, referrer.referralCode))
-      .orderBy(user.createdAt);
+      .orderBy(desc(user.createdAt));
 
     return {
       success: true,

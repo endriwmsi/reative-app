@@ -42,7 +42,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { DownloadSolicitationsButton } from "./download-solicitations-button";
 
 interface CapitalGiro {
@@ -253,7 +253,7 @@ export default function SolicitationsTable({
             </Badge>
             {temRestricao && row.original.valorRestricao && (
               <span className="text-xs mt-1">
-                {formatCurrency(parseFloat(row.original.valorRestricao))}
+                {row.original.valorRestricao}
               </span>
             )}
           </div>

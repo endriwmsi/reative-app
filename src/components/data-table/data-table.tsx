@@ -31,7 +31,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   searchPlaceholder?: string;
-  globalFilterFn?: FilterFn<TData>;
+  globalFilterFn?: FilterFn<TData> | string;
 }
 
 export function DataTable<TData, TValue>({

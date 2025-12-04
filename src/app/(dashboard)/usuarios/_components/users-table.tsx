@@ -225,8 +225,8 @@ export function UsersTable({ users }: UserTableProps) {
     <DataTable
       columns={columns}
       data={users}
-      searchKey="email"
-      searchPlaceholder="Filtrar por email..."
+      searchPlaceholder="Filtrar por email, nome ou indicador..."
+      globalFilterFn="includesString"
     />
   );
 }
