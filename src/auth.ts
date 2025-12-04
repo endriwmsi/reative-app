@@ -1,12 +1,12 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError, createAuthMiddleware } from "better-auth/api";
+import { createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
 import { sendEmailAction } from "./actions/auth/send-email.action";
 import { db } from "./db/client";
 import * as schema from "./db/schema";
-import { getValidDomains, normalizeName } from "./lib/utils";
+import { normalizeName } from "./lib/utils";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -34,17 +34,6 @@ export const auth = betterAuth({
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email") {
-        const email = String(ctx.body.email);
-        const domain = email.split("@")[1];
-
-        const VALID_DOMAINS = getValidDomains();
-
-        if (!VALID_DOMAINS.includes(domain)) {
-          throw new APIError("BAD_REQUEST", {
-            message: "Domínio inválido. Por favor, use um domínio válido.",
-          });
-        }
-
         const name = normalizeName(ctx.body.name);
 
         return {
