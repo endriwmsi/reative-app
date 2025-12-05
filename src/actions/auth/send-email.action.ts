@@ -198,7 +198,7 @@ export async function sendEmailAction({
   const mailOptions = {
     from: process.env.NODEMAILER_USER,
     to,
-    subject: `HUB-LN• ${subject}`,
+    subject: `HUB-LN • ${subject}`,
     html: `
       <!DOCTYPE html>
       <html lang="pt-BR">

@@ -22,7 +22,7 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       await sendEmailAction({
         to: user.email,
-        subject: "Redefinir senha",
+        subject: "Redefinição de Senha",
         meta: {
           description: "Clique no link abaixo para redefinir sua senha.",
           link: String(url),
