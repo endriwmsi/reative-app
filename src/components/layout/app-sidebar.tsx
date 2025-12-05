@@ -89,6 +89,11 @@ const data = {
       url: "/indicacoes",
       icon: IconNetwork,
     },
+    {
+      title: "Criativos",
+      url: "/criativos",
+      icon: IconNetwork,
+    },
     // {
     //   title: "Gestão Financeira",
     //   url: "#",
