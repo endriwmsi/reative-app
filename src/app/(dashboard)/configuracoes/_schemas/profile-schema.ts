@@ -10,7 +10,6 @@ export const profileSchema = z.object({
     .string()
     .min(10, "Telefone inválido")
     .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, "Formato: (XX) XXXXX-XXXX"),
-  image: z.url("URL inválida").optional(),
 });
 
 export const addressSchema = z.object({

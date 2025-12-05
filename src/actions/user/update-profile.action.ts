@@ -33,8 +33,12 @@ export async function updateProfileAction(data: UpdateProfileParams) {
         updatedAt: new Date(),
       })
       .where(eq(user.id, session.user.id));
-
-    revalidatePath("/(dashboard)/**");
+      
+    await auth.api.getSession({
+      headers: await headers(),
+    });
+      
+    revalidatePath("/configuracoes/perfil");
 
     return {
       success: true,
