@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { forgetPassword } from "@/lib/auth-client";
 import { Form, FormControl, FormField, FormMessage } from "../ui/form";
+import { requestPasswordReset } from "@/lib/auth-client";
 // import { Icons } from "../../../../components/icons";
 
 export const ForgotPasswordForm = () => {
@@ -30,7 +30,7 @@ export const ForgotPasswordForm = () => {
     setIsPending(true);
 
     try {
-      await forgetPassword({
+      await requestPasswordReset({
         email: values.email,
         redirectTo: "/reset-password",
         fetchOptions: {
