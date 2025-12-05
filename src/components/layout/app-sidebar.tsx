@@ -2,6 +2,7 @@
 
 import {
   IconDashboard,
+  IconImageInPicture,
   IconMoneybag,
   IconNetwork,
   IconPackage,
@@ -92,7 +93,7 @@ const data = {
     {
       title: "Criativos",
       url: "/criativos",
-      icon: IconNetwork,
+      icon: IconImageInPicture,
     },
     // {
     //   title: "Gestão Financeira",
