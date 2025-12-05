@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import type z from "zod";
 import { resetPasswordSchema } from "@/app/(auth)/_schemas/reset-password-schema";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/ui/password-input";
 import { resetPassword } from "@/lib/auth-client";
-import { Form, FormControl, FormField, FormMessage } from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Spinner } from "../ui/spinner";
+import { Label } from "../ui/label";
+import { PasswordInput } from "../ui/password-input";
 
 interface ResetPasswordFormProps {
   token: string;
@@ -71,11 +71,13 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
           name="password"
           render={({ field }) => (
             <div className="grid gap-1">
-              <FormControl>
+              <FormItem>
                 <Label htmlFor="password">Nova senha</Label>
-                <PasswordInput id="password" {...field} />
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <PasswordInput id="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </div>
           )}
         />
@@ -85,11 +87,13 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
           name="confirmPassword"
           render={({ field }) => (
             <div className="grid gap-1">
-              <FormControl>
+              <FormItem>
                 <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                <PasswordInput id="confirmPassword" {...field} />
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <PasswordInput id="confirmPassword" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </div>
           )}
         />

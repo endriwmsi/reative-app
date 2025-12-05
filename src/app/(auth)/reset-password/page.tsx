@@ -17,7 +17,7 @@ export default async function Page({ searchParams }: PageProps) {
   if (!token) redirect("/login");
 
   return (
-    <div className="container mx-auto max-w-screen-lg space-y-8 px-8 py-16">
+    <div className="container mx-auto max-w-5xl space-y-8 px-8 py-16">
       <div className="space-y-4">
         <h1 className="text-3xl font-bold">Reset Password</h1>
 
