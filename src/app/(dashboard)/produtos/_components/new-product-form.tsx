@@ -72,12 +72,9 @@ const NewProductForm = () => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título do Envio</FormLabel>
+              <FormLabel>Nome do produto</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Ex: Cliente João Silva - Limpa Nome"
-                  {...field}
-                />
+                <Input placeholder="Ex: Limpa Nome" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
