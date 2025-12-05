@@ -3,6 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
+import type { ProductFormData } from "@/app/(dashboard)/produtos/_schemas/new-product-schema";
 import { db } from "@/db/client";
 import { product, user, userProductPrice } from "@/db/schema";
 import { formatCurrency } from "@/lib/utils";
@@ -339,5 +340,25 @@ export async function setMyResalePrice(
   } catch (error) {
     console.error("Erro ao definir preço de revenda:", error);
     return { success: false, error: "Erro ao definir preço de revenda" };
+  }
+}
+
+export async function createProduct(data: ProductFormData) {
+  try {
+    const priceInCents = data.price.replace(/\D/g, "");
+    const priceDecimal = (parseInt(priceInCents) / 100).toFixed(2);
+
+    await db.insert(product).values({
+      name: data.name,
+      description: data.description || "",
+      basePrice: priceDecimal,
+      category: data.category,
+    });
+
+    revalidatePath("/produtos");
+    return { success: true, message: "Produto criado com sucesso" };
+  } catch (error) {
+    console.error("Erro ao criar produto:", error);
+    return { success: false, error: "Erro ao criar produto" };
   }
 }

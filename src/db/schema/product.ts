@@ -13,7 +13,7 @@ export const product = pgTable("product", {
   name: text("name").notNull(),
   description: text("description").notNull(),
 
-  // Preço base do produto (em centavos para evitar problemas de ponto flutuante)
+  // Preço base do produto
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
 
   // Categoria do serviço (limpa_nome, recuperacao_credito, etc)

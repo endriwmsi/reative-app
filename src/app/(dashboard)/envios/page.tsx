@@ -127,7 +127,7 @@ export default async function EnviosPage() {
         <div className="-mx-6 lg:mx-0">
           <div className="overflow-x-auto lg:overflow-x-visible px-6 lg:px-0">
             <div className="flex gap-4 lg:grid lg:grid-cols-3 lg:gap-4">
-              <Card className="min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
+              <Card className="min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Saldo Disponível para Retirada
@@ -144,7 +144,7 @@ export default async function EnviosPage() {
                 </CardContent>
               </Card>
 
-              <Card className="min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
+              <Card className="min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Saldo Pendente
@@ -161,7 +161,7 @@ export default async function EnviosPage() {
                 </CardContent>
               </Card>
 
-              <Card className="min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
+              <Card className="min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Total de Comissões
@@ -182,7 +182,7 @@ export default async function EnviosPage() {
               </Card>
 
               {/* Elemento invisível para criar espaço à direita em mobile */}
-              <div className="w-2 flex-shrink-0 lg:hidden" aria-hidden="true" />
+              <div className="w-2 shrink-0 lg:hidden" aria-hidden="true" />
             </div>
           </div>
         </div>
