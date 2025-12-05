@@ -40,7 +40,7 @@ export const ForgotPasswordForm = () => {
           onResponse: () => {
             setIsPending(false);
           },
-          onError: (ctx) => {
+          onError: (ctx: { error: { message: string } }) => {
             toast.error(ctx.error.message);
           },
           onSuccess: () => {
