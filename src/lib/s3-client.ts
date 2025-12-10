@@ -1,7 +1,7 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 
-// Configuração do cliente S3
+// S3 Client Configuration
 export const s3Client = new S3Client({
   region: process.env.AWS_REGION || "sa-east-1",
   credentials: {
@@ -13,11 +13,17 @@ export const s3Client = new S3Client({
 export const S3_BUCKET =
   process.env.S3_BUCKET_NAME || "reative-platform-uploads";
 
-// Função para fazer upload de arquivo para S3
+/**
+ * Uploads a file to S3.
+ * @param file The file buffer.
+ * @param key The S3 object key.
+ * @param contentType The MIME type of the file.
+ * @returns The key of the uploaded file.
+ */
 export async function uploadToS3(
   file: Buffer,
   key: string,
-  contentType: string = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  contentType: string = "application/octet-stream"
 ): Promise<string> {
   try {
     const upload = new Upload({
@@ -38,21 +44,49 @@ export async function uploadToS3(
   }
 }
 
-// Função para gerar chave única para o arquivo
-export function generateS3Key(userId: string, fileName: string): string {
-  const timestamp = Date.now();
-  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
-  return `listas/${userId}/${timestamp}_${sanitizedFileName}`;
+/**
+ * Deletes a file from S3.
+ * @param key The S3 object key.
+ */
+export async function deleteFromS3(key: string): Promise<void> {
+  try {
+    const command = new DeleteObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+    });
+    await s3Client.send(command);
+  } catch (error) {
+    console.error("Error deleting from S3:", error);
+    throw new Error("Failed to delete file from S3");
+  }
 }
 
-// Função específica para avatars
+/**
+ * Generates a unique S3 key for a file.
+ */
+export function generateS3Key(prefix: string, fileName: string): string {
+  const timestamp = Date.now();
+  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
+  return `${prefix}/${timestamp}_${sanitizedFileName}`;
+}
+
+/**
+ * Generates a unique S3 key for avatars.
+ */
 export function generateAvatarKey(userId: string, fileName: string): string {
-  const timestamp = Date.now();
-  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
-  return `avatars/${userId}/${timestamp}_${sanitizedFileName}`;
+  return generateS3Key(`avatars/${userId}`, fileName);
 }
 
-// Função para obter URL temporária do arquivo (opcional, para download)
+/**
+ * Generates a unique S3 key for creatives.
+ */
+export function generateCreativeKey(fileName: string): string {
+  return generateS3Key("creatives", fileName);
+}
+
+/**
+ * Returns the public URL for an S3 object.
+ */
 export function getS3Url(key: string): string {
   return `https://${S3_BUCKET}.s3.${process.env.AWS_REGION || "sa-east-1"}.amazonaws.com/${key}`;
 }
