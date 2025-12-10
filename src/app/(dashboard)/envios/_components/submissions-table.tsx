@@ -339,7 +339,9 @@ export default function SubmissionsTable({
       header: "Nome do envio",
       cell: ({ row }) => {
         const submission = row.original;
-        return <div className="text-sm break-words">{submission.title}</div>;
+        return (
+          <div className="text-sm wrap-break-words">{submission.title}</div>
+        );
       },
       enableSorting: false,
     },
@@ -358,7 +360,7 @@ export default function SubmissionsTable({
         const submission = row.original;
         return (
           <div className="text-sm flex flex-col space-y-1">
-            <span className="font-medium break-words">
+            <span className="font-medium wrap-break-words">
               {submission.userName}
             </span>
             <span className="text-primary/50 text-xs break-all">
@@ -617,8 +619,12 @@ export default function SubmissionsTable({
                     </div>
                   )}
                 </div>
-                <div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row lg:items-center lg:flex-shrink-0">
-                  <DownloadClientsButton selectedSubmissionIds={selectedIds} />
+                <div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row lg:items-center lg:shrink-0">
+                  {isAdmin && (
+                    <DownloadClientsButton
+                      selectedSubmissionIds={selectedIds}
+                    />
+                  )}
                   <Button
                     onClick={handlePayment}
                     disabled={
