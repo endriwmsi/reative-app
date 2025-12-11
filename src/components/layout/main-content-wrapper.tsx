@@ -38,7 +38,7 @@ export function MainContentWrapper({
       <div className="flex flex-col">
         <AnnouncementBanner
           type="info"
-          message="Próxima ação de limpa nome dia 05/12/2025 até 08/12/2025 as 20:00h"
+          message="Próxima ação dia 11/12 até 16/12 as 20:00h - Prazo de baixas 30 a 45 dias úteis - Promoção 2 nomes por R$85!"
         />
       </div>
       <motion.div
