@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  IconAlertCircle,
   IconDashboard,
   IconImageInPicture,
   IconMoneybag,
@@ -188,11 +189,11 @@ const data = {
       url: "/usuarios",
       icon: IconUsers,
     },
-    // {
-    //   name: "Reports",
-    //   url: "#",
-    //   icon: IconReport,
-    // },
+    {
+      name: "Avisos",
+      url: "/avisos",
+      icon: IconAlertCircle,
+    },
     // {
     //   name: "Word Assistant",
     //   url: "#",

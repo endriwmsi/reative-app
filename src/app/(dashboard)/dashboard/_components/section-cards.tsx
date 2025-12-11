@@ -31,7 +31,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
 
   return (
     <div className="overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
-      <div className="flex gap-4 px-4 lg:grid lg:grid-cols-4 lg:gap-4 lg:px-6 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
+      <div className="flex gap-4 px-4 lg:grid lg:grid-cols-4 lg:gap-4 lg:px-6 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs">
         {/* <Card className="@container/card min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
         <CardHeader>
           <CardDescription>Saldo Disponível</CardDescription>
@@ -69,7 +69,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
         </CardFooter>
       </Card> */}
 
-        <Card className="@container/card min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
+        <Card className="@container/card min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
           <CardHeader>
             <CardDescription>Total Vendas</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -106,7 +106,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
           </CardFooter>
         </Card>
 
-        <Card className="@container/card min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
+        <Card className="@container/card min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
           <CardHeader>
             <CardDescription>Vendas Hoje</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -143,37 +143,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
           </CardFooter>
         </Card>
 
-        <Card className="@container/card min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
-          <CardHeader>
-            <CardDescription>Indicados Diretos</CardDescription>
-            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {metrics.parceirosIndicados}
-            </CardTitle>
-            <CardAction>
-              <Badge variant="outline">
-                <IconUsers
-                  className={getGrowthColor(
-                    metrics.growthIndicators.parceirosIndicados,
-                  )}
-                />
-                Ativos
-              </Badge>
-            </CardAction>
-          </CardHeader>
-          <CardFooter className="flex-col items-start gap-1.5 text-sm">
-            <div className="line-clamp-1 flex gap-2 font-medium">
-              Rede em crescimento{" "}
-              <IconUsers
-                className={`size-4 ${getGrowthColor(metrics.growthIndicators.parceirosIndicados)}`}
-              />
-            </div>
-            <div className="text-muted-foreground">
-              Parceiros indicados por você
-            </div>
-          </CardFooter>
-        </Card>
-
-        <Card className="@container/card min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
+        <Card className="@container/card min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
           <CardHeader>
             <CardDescription>Total Faturamento</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -208,6 +178,36 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
             </div>
             <div className="text-muted-foreground">
               Faturamento total da rede
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className="@container/card min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
+          <CardHeader>
+            <CardDescription>Indicados Diretos</CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {metrics.parceirosIndicados}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                <IconUsers
+                  className={getGrowthColor(
+                    metrics.growthIndicators.parceirosIndicados,
+                  )}
+                />
+                Ativos
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Rede em crescimento{" "}
+              <IconUsers
+                className={`size-4 ${getGrowthColor(metrics.growthIndicators.parceirosIndicados)}`}
+              />
+            </div>
+            <div className="text-muted-foreground">
+              Parceiros indicados por você
             </div>
           </CardFooter>
         </Card>
@@ -254,7 +254,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
         </CardFooter>
       </Card> */}
         {/* Elemento invisível para criar espaço à direita em mobile */}
-        <div className="w-2 flex-shrink-0 lg:hidden" aria-hidden="true" />
+        <div className="w-2 shrink-0 lg:hidden" aria-hidden="true" />
       </div>
     </div>
   );

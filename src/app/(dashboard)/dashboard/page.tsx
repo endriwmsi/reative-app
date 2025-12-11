@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDashboardMetrics } from "@/actions/dashboard/dashboard-metrics.action";
-import FutureFeaturesCard from "./_components/future-features-card";
+import AnnouncementsCard from "./_components/announcements-card";
+// import FutureFeaturesCard from "./_components/future-features-card";
 import SectionCards from "./_components/section-cards";
 import TopPartnersPodium from "./_components/top-partners-podium";
 import UpcomingFeatures from "./_components/upcoming-features";
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 px-4 lg:px-6 lg:grid-cols-3">
         <div className="col-span-2 h-full">
-          <FutureFeaturesCard />
+          <AnnouncementsCard />
         </div>
         <div className="col-span-1 h-full">
           <TopPartnersPodium />

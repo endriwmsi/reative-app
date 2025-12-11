@@ -5,7 +5,7 @@ import {
   getAllUsers,
   isUserAdmin,
 } from "@/actions/user/user-management.action";
-import { UsersTable } from "@/app/(dashboard)/usuarios/_components/users-table";
+import { UsersTable } from "@/app/(dashboard)/(admin)/usuarios/_components/users-table";
 import { auth } from "@/auth";
 import { Card, CardContent } from "@/components/ui/card";
 
