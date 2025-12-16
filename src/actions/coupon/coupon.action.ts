@@ -220,24 +220,57 @@ export async function validateCoupon(params: ValidateCouponParams) {
       return { success: false, error: "Você não pode usar seu próprio cupom" };
     }
 
-    // Buscar preço personalizado do usuário se fornecido
+    // Buscar preço personalizado
+    // Lógica: O preço base deve ser o preço definido pelo "usuário acima" (quem indicou o comprador)
+    // Se não houver usuário logado ou não houver indicador, tenta usar o preço do criador do cupom
     let userPrice = parseFloat(couponData.productBasePrice);
 
     if (userId) {
-      const [userPriceData] = await db
-        .select({
-          customPrice: userProductPrice.customPrice,
-        })
+      // 1. Buscar quem indicou o usuário (Upline)
+      const [userData] = await db
+        .select({ referredBy: user.referredBy })
+        .from(user)
+        .where(eq(user.id, userId));
+
+      if (userData?.referredBy) {
+        // 2. Buscar o ID do Upline pelo código de referência
+        const [referrer] = await db
+          .select({ id: user.id })
+          .from(user)
+          .where(eq(user.referralCode, userData.referredBy));
+
+        if (referrer) {
+          // 3. Buscar o preço definido pelo Upline
+          const [referrerPriceData] = await db
+            .select({ customPrice: userProductPrice.customPrice })
+            .from(userProductPrice)
+            .where(
+              and(
+                eq(userProductPrice.userId, referrer.id),
+                eq(userProductPrice.productId, productId),
+              ),
+            );
+
+          if (referrerPriceData?.customPrice) {
+            userPrice = parseFloat(referrerPriceData.customPrice);
+          }
+        }
+      }
+    } else {
+      // Fallback: Se não tem usuário logado, usa o preço do criador do cupom
+      // Assumindo que quem tem o cupom vai comprar de quem criou
+      const [creatorPriceData] = await db
+        .select({ customPrice: userProductPrice.customPrice })
         .from(userProductPrice)
         .where(
           and(
-            eq(userProductPrice.userId, userId),
+            eq(userProductPrice.userId, couponData.userId),
             eq(userProductPrice.productId, productId),
           ),
         );
 
-      if (userPriceData?.customPrice) {
-        userPrice = parseFloat(userPriceData.customPrice);
+      if (creatorPriceData?.customPrice) {
+        userPrice = parseFloat(creatorPriceData.customPrice);
       }
     }
 
