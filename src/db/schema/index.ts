@@ -1,6 +1,7 @@
 export * from "./account";
 export * from "./announcement";
 export * from "./capital-giro";
+export * from "./clean-name-action";
 export * from "./commission-earnings";
 export * from "./coupon";
 export * from "./creatives";

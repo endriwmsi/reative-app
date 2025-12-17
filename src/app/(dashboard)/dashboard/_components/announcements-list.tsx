@@ -45,7 +45,7 @@ export function AnnouncementsList({ announcements }: AnnouncementsListProps) {
 
   return (
     <>
-      <ScrollArea className="h-[300px] pr-4">
+      <ScrollArea className="h-36 pr-4">
         <div className="space-y-4">
           {announcements.map((announcement) => (
             <Card

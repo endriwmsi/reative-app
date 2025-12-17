@@ -194,6 +194,11 @@ const data = {
       url: "/avisos",
       icon: IconAlertCircle,
     },
+    {
+      name: "Ações Limpa Nome",
+      url: "/acoes-limpa-nome",
+      icon: IconTicket,
+    },
     // {
     //   name: "Word Assistant",
     //   url: "#",

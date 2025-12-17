@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import type { CleanNameAction } from "@/db/schema/clean-name-action";
 import {
   type ExcelUploadFormData,
   excelUploadSchema,
@@ -49,12 +50,14 @@ interface CreateExcelUploadFormProps {
   userId: string;
   trigger?: React.ReactNode;
   onSuccess?: () => void;
+  activeActions?: CleanNameAction[];
 }
 
 export default function CreateExcelUploadForm({
   products,
   userId,
   onSuccess,
+  activeActions,
 }: CreateExcelUploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [couponValidation, setCouponValidation] = useState<{
@@ -228,9 +231,20 @@ export default function CreateExcelUploadForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Título do Envio *</FormLabel>
-              <FormControl>
-                <Input placeholder="Ex: Protocolo Janeiro 2024" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma ação" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {activeActions?.map((action) => (
+                    <SelectItem key={action.id} value={action.name}>
+                      {action.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

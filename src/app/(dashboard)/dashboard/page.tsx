@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDashboardMetrics } from "@/actions/dashboard/dashboard-metrics.action";
+import { ActiveActionsList } from "./_components/active-actions-list";
 import AnnouncementsCard from "./_components/announcements-card";
 // import FutureFeaturesCard from "./_components/future-features-card";
 import SectionCards from "./_components/section-cards";
@@ -23,11 +24,16 @@ export default async function DashboardPage() {
 
       <SectionCards metrics={metrics} />
 
-      <div className="grid grid-cols-1 gap-6 px-4 lg:px-6 lg:grid-cols-3">
-        <div className="col-span-2 h-full">
-          <AnnouncementsCard />
+      <div className="grid grid-cols-1 gap-6 px-4 lg:px-6">
+        <AnnouncementsCard />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 px-4 lg:px-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-6">
+          <ActiveActionsList />
         </div>
-        <div className="col-span-1 h-full">
+
+        <div className="xl:col-span-1 h-full">
           <TopPartnersPodium />
         </div>
       </div>

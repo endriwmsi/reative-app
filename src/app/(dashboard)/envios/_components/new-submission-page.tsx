@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExcelUploadForm from "../_components/create-excel-upload-form";
 import CreateSingleClientForm from "../_components/create-single-client-form";
 import "@/types/auth";
+import type { CleanNameAction } from "@/db/schema/clean-name-action";
 
 interface NewSubmissionPageProps {
   userId: string;
@@ -25,11 +26,13 @@ interface NewSubmissionPageProps {
     category: string;
     customPrice: string | null;
   }[];
+  activeActions: CleanNameAction[];
 }
 
 export default function NewSubmissionPage({
   products,
   userId,
+  activeActions,
 }: NewSubmissionPageProps) {
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-3xl">
@@ -84,6 +87,7 @@ export default function NewSubmissionPage({
                 onSuccess={() => {
                   window.location.href = "/envios";
                 }}
+                activeActions={activeActions}
               />
             </TabsContent>
 
@@ -103,6 +107,7 @@ export default function NewSubmissionPage({
                 onSuccess={() => {
                   window.location.href = "/envios";
                 }}
+                activeActions={activeActions}
               />
             </TabsContent>
           </Tabs>

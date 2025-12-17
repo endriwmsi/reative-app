@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getActiveCleanNameActions } from "@/actions/clean-name-action/clean-name-action.action";
 import { getProductsForUser } from "@/actions/product/product.action";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,11 @@ export default async function NovoEnvioPage() {
 
   // Buscar produtos disponíveis para o usuário
   const productsResult = await getProductsForUser(session.user.id);
+  const activeActionsResult = await getActiveCleanNameActions();
+  const activeActions =
+    activeActionsResult.success && activeActionsResult.data
+      ? activeActionsResult.data
+      : [];
 
   if (!productsResult.success || !productsResult.data) {
     return (
@@ -56,6 +62,7 @@ export default async function NovoEnvioPage() {
     <NewSubmissionPage
       products={productsResult.data}
       userId={session.user.id}
+      activeActions={activeActions}
     />
   );
 }

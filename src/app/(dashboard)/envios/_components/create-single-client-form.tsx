@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { CleanNameAction } from "@/db/schema/clean-name-action";
 import { formatCNPJ, formatCPF } from "@/lib/utils";
 import { singleClientSchema } from "../_schemas/single-client-schema";
 
@@ -42,12 +43,14 @@ interface CreateSingleClientFormProps {
   products: Product[];
   userId?: string;
   onSuccess: () => void;
+  activeActions?: CleanNameAction[];
 }
 
 export default function CreateSingleClientForm({
   products,
   userId,
   onSuccess,
+  activeActions,
 }: CreateSingleClientFormProps) {
   const [loading, setLoading] = useState(false);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
@@ -170,12 +173,20 @@ export default function CreateSingleClientForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Título do Envio</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ex: Cliente João Silva - Limpa Nome"
-                      {...field}
-                    />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma ação" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {activeActions?.map((action) => (
+                        <SelectItem key={action.id} value={action.name}>
+                          {action.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
