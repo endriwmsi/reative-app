@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { SiteHeader } from "@/components/layout/site-header";
-import { AnnouncementBanner } from "../announcement-banner";
 
 export function MainContentWrapper({
   children,
@@ -35,12 +34,12 @@ export function MainContentWrapper({
       transition={{ duration: 0.8, ease: "easeInOut" }}
     >
       <SiteHeader />
-      <div className="flex flex-col">
+      {/* <div className="flex flex-col">
         <AnnouncementBanner
           type="info"
           message="Próxima ação dia 11/12 até 15/12 as 20:00h - Prazo de baixas 30 a 45 dias úteis - Promoção 2 nomes por R$80,00!"
         />
-      </div>
+      </div> */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
