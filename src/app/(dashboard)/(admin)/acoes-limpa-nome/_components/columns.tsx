@@ -32,9 +32,17 @@ export const columns: ColumnDef<CleanNameAction>[] = [
     accessorKey: "isActive",
     header: "Status",
     cell: ({ row }) => (
-      <Badge variant={row.original.isActive ? "default" : "secondary"}>
-        {row.original.isActive ? "Ativa" : "Inativa"}
-      </Badge>
+      <div className="flex flex-col gap-1 items-start">
+        <Badge variant={row.original.isActive ? "default" : "secondary"}>
+          {row.original.isActive ? "Visível" : "Oculta"}
+        </Badge>
+        <Badge
+          variant={row.original.allowSubmissions ? "outline" : "destructive"}
+          className="whitespace-nowrap"
+        >
+          {row.original.allowSubmissions ? "Envios ON" : "Envios OFF"}
+        </Badge>
+      </div>
     ),
   },
   {

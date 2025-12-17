@@ -15,6 +15,7 @@ export const cleanNameAction = pgTable("clean_name_action", {
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  allowSubmissions: boolean("allow_submissions").notNull().default(true),
 
   boaVistaStatus: actionStatusEnum("boa_vista_status")
     .notNull()

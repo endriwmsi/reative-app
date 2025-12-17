@@ -63,6 +63,7 @@ export function CleanNameActionDialog({
       startDate: action?.startDate ? new Date(action.startDate) : new Date(),
       endDate: action?.endDate ? new Date(action.endDate) : new Date(),
       isActive: action?.isActive ?? true,
+      allowSubmissions: action?.allowSubmissions ?? true,
       boaVistaStatus:
         (action?.boaVistaStatus as CleanNameActionInput["boaVistaStatus"]) ||
         "Aguardando baixas",
@@ -183,7 +184,34 @@ export function CleanNameActionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Ativa</FormLabel>
+                    <FormLabel className="text-base">
+                      Visível no Dashboard
+                    </FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Se desativado, a ação não aparecerá em lugar nenhum.
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control as any}
+              name="allowSubmissions"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Permitir Envios</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Se desativado, a ação será visível mas não poderá ser
+                      selecionada em novos envios.
+                    </div>
                   </div>
                   <FormControl>
                     <Switch

@@ -11,6 +11,7 @@ export const cleanNameActionSchema = z.object({
   startDate: z.date(),
   endDate: z.date(),
   isActive: z.boolean().default(true),
+  allowSubmissions: z.boolean().default(true),
   boaVistaStatus: actionStatusEnum,
   spcStatus: actionStatusEnum,
   serasaStatus: actionStatusEnum,

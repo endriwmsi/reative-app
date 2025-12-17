@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/client";
 import { cleanNameAction } from "@/db/schema";
@@ -28,6 +28,22 @@ export async function getActiveCleanNameActions() {
   } catch (error) {
     console.error("Error fetching active clean name actions:", error);
     return { success: false, error: "Erro ao buscar ações ativas" };
+  }
+}
+
+export async function getSelectableCleanNameActions() {
+  try {
+    const actions = await db.query.cleanNameAction.findMany({
+      where: and(
+        eq(cleanNameAction.isActive, true),
+        eq(cleanNameAction.allowSubmissions, true),
+      ),
+      orderBy: [desc(cleanNameAction.createdAt)],
+    });
+    return { success: true, data: actions };
+  } catch (error) {
+    console.error("Error fetching selectable clean name actions:", error);
+    return { success: false, error: "Erro ao buscar ações selecionáveis" };
   }
 }
 
