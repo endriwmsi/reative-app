@@ -17,6 +17,7 @@ export interface ClientDownloadData {
   submissionCreatedAt: Date;
   submissionStatus: string;
   submissionIsPaid: boolean;
+  submissionTotalAmount: string;
   productId: number;
   productName: string;
   productCategory: string;
@@ -94,6 +95,7 @@ export async function getClientsGroupedByProduct(
         submissionCreatedAt: submission.createdAt,
         submissionStatus: submission.status,
         submissionIsPaid: submission.isPaid,
+        submissionTotalAmount: submission.totalAmount,
         productId: product.id,
         productName: product.name,
         productCategory: product.category,
@@ -137,6 +139,7 @@ export async function getClientsGroupedByProduct(
         submissionCreatedAt: clientData.submissionCreatedAt,
         submissionStatus: clientData.submissionStatus,
         submissionIsPaid: clientData.submissionIsPaid,
+        submissionTotalAmount: clientData.submissionTotalAmount,
         productId: clientData.productId,
         productName: clientData.productName,
         productCategory: clientData.productCategory,

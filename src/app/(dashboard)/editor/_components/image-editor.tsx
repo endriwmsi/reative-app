@@ -264,6 +264,7 @@ export function ImageEditor() {
     [elements, selectedId, snapLines],
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: it's fine
   useEffect(() => {
     draw();
   }, [draw, canvasSize]);

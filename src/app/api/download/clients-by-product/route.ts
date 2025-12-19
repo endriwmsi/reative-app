@@ -78,6 +78,9 @@ export async function POST(request: NextRequest) {
         ),
         "Status do Envio": client.submissionStatus,
         "Envio Pago": client.submissionIsPaid ? "Sim" : "Não",
+        "Valor Pago": client.submissionTotalAmount
+          ? `R$ ${Number(client.submissionTotalAmount).toFixed(2).replace(".", ",")}`
+          : "R$ 0,00",
         Responsável: client.userName,
         "Email do Responsável": client.userEmail,
       }));
@@ -94,6 +97,7 @@ export async function POST(request: NextRequest) {
         { wch: 20 }, // Data do Envio
         { wch: 20 }, // Status do Envio
         { wch: 12 }, // Envio Pago
+        { wch: 15 }, // Valor Pago
         { wch: 25 }, // Responsável
         { wch: 30 }, // Email do Responsável
       ];
