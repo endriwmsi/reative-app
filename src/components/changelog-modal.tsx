@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Calendar, Check, Rocket } from "lucide-react";
+import { AlertTriangle, Check, Rocket } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,14 +16,14 @@ export function ChangelogModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const hasSeenChangelog = localStorage.getItem("changelog-2025-12-04");
+    const hasSeenChangelog = localStorage.getItem("changelog-2025-12-19");
     if (!hasSeenChangelog) {
       setOpen(true);
     }
   }, []);
 
   const handleClose = () => {
-    localStorage.setItem("changelog-2025-12-04", "true");
+    localStorage.setItem("changelog-2025-12-19", "true");
     setOpen(false);
   };
 
@@ -63,13 +63,29 @@ export function ChangelogModal() {
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <Check className="h-5 w-5 text-green-500" />O que há de novo?
             </h3>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-2">
+
+            <div className="mb-4 bg-primary/5 p-4 rounded-lg border border-primary/10">
+              <h4 className="font-semibold text-primary mb-2 flex items-center gap-2">
+                🎨 Novo Editor de Criativos
+              </h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Transforme sua divulgação com nosso novo estúdio de design!
+                Agora você pode criar materiais profissionais em segundos:
+              </p>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-1">
+                <li>Formatos otimizados para Feed (4:5) e Stories (9:16)</li>
+                <li>Adicione sua logo e identidade visual facilmente</li>
+                <li>Elementos de alta conversão prontos para usar</li>
+                <li>Exportação em alta qualidade para redes sociais</li>
+              </ul>
+            </div>
+
+            {/* <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-2">
               <li>Solicitação de Capital de Giro</li>
-            </ul>
+            </ul> */}
           </div>
 
-          {/* Future Features */}
-          <div>
+          {/* <div>
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-500" />O que há por vir
               (até o fim de dezembro)
@@ -82,7 +98,7 @@ export function ChangelogModal() {
               <li>Melhorias significativas de performance</li>
               <li>Otimização da experiência do usuário</li>
             </ul>
-          </div>
+          </div> */}
         </div>
 
         <DialogFooter>

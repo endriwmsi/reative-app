@@ -96,6 +96,11 @@ const data = {
       url: "/criativos",
       icon: IconImageInPicture,
     },
+    {
+      title: "Editor de Criativos",
+      url: "/editor",
+      icon: IconImageInPicture,
+    },
     // {
     //   title: "Gestão Financeira",
     //   url: "#",
