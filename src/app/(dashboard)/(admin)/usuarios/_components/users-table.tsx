@@ -1,9 +1,16 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Check, MoreHorizontal, User as UserIcon, X } from "lucide-react";
+import {
+  Check,
+  Download,
+  MoreHorizontal,
+  User as UserIcon,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 import {
   approveUserAccount,
   rejectUserAccount,
@@ -58,6 +65,25 @@ export function UsersTable({ users }: UserTableProps) {
     } finally {
       setIsLoading(null);
     }
+  };
+
+  const handleExportUsers = () => {
+    const dataToExport = users.map((user) => ({
+      Nome: user.name,
+      Email: user.email,
+      Telefone: user.phone || "",
+      CPF: user.cpf || "",
+      CNPJ: user.cnpj || "",
+      "Indicado por": user.referredByEmail || "",
+      Status: user.emailVerified ? "Aprovado" : "Pendente",
+      Tipo: user.isAdmin ? "Admin" : "Usuário",
+      "Criado em": new Date(user.createdAt).toLocaleDateString("pt-BR"),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Usuários");
+    XLSX.writeFile(workbook, "usuarios.xlsx");
   };
 
   const columns: ColumnDef<User>[] = [
@@ -227,6 +253,17 @@ export function UsersTable({ users }: UserTableProps) {
       data={users}
       searchPlaceholder="Filtrar por email, nome ou indicador..."
       globalFilterFn="includesString"
+      toolbarActions={
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8"
+          onClick={handleExportUsers}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Exportar
+        </Button>
+      }
     />
   );
 }

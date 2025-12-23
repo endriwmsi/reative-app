@@ -12,6 +12,7 @@ interface DataTableToolbarProps<TData> {
   searchKey?: string;
   searchPlaceholder?: string;
   useGlobalFilter?: boolean;
+  children?: React.ReactNode;
 }
 
 export function DataTableToolbar<TData>({
@@ -19,6 +20,7 @@ export function DataTableToolbar<TData>({
   searchKey,
   searchPlaceholder = "Filtrar...",
   useGlobalFilter = false,
+  children,
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
     table.getState().columnFilters.length > 0 || table.getState().globalFilter;
@@ -63,7 +65,8 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <div className="flex justify-center">
+      <div className="flex items-center gap-2">
+        {children}
         <DataTableViewOptions table={table} />
       </div>
     </div>

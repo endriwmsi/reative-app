@@ -32,6 +32,7 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   globalFilterFn?: FilterFnOption<TData>;
+  toolbarActions?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,6 +41,7 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder,
   globalFilterFn,
+  toolbarActions,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -79,7 +81,9 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         searchPlaceholder={searchPlaceholder}
         useGlobalFilter={!!globalFilterFn}
-      />
+      >
+        {toolbarActions}
+      </DataTableToolbar>
       <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
