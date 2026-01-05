@@ -188,6 +188,36 @@ export default async function EnviosPage() {
         </div>
       )}
 
+      <Card className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-yellow-700 dark:text-yellow-500">
+            ⚠️ AÇÃO NECESSÁRIA: Assine a Ficha Associativa
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm md:text-base">
+          <p>Precisamos da sua formalização imediata para validar o pedido.</p>
+
+          <p className="font-semibold text-yellow-800 dark:text-yellow-400">
+            🚨 ATENÇÃO: Lembramos que é obrigatória uma assinatura para CADA
+            NOME (CPF ou CNPJ) enviado. Se você enviou mais de um nome, cada
+            cliente deve assinar sua respectiva ficha.
+          </p>
+
+          <p>
+            Acesse o link seguro da ZapSign e assine digitalmente agora para
+            evitar atrasos na baixa: 👇{" "}
+            <a
+              href="https://app.zapsign.com.br/verificar/doc/098f6450-8581-4f3d-ba13-fd6c459f7df2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-blue-600 hover:underline dark:text-blue-400"
+            >
+              https://app.zapsign.com.br/verificar/doc/098f6450-8581-4f3d-ba13-fd6c459f7df2
+            </a>
+          </p>
+        </CardContent>
+      </Card>
+
       <SubmissionsTable
         submissions={submissionsResult.data as SubmissionData[]}
         userId={session.user.id}

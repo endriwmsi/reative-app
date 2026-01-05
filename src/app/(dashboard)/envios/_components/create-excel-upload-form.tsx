@@ -87,6 +87,11 @@ export default function CreateExcelUploadForm({
 
   const { isSubmitting } = form.formState;
 
+  const watchedProductId = form.watch("productId");
+  const selectedProduct = products.find(
+    (p) => p.id.toString() === watchedProductId,
+  );
+
   // Validação de cupom com debounce
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -200,11 +205,11 @@ export default function CreateExcelUploadForm({
           name="productId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Produto/Serviço</FormLabel>
+              <FormLabel>Serviço</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione um produto" />
+                    <SelectValue placeholder="Selecione um serviço" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -220,6 +225,11 @@ export default function CreateExcelUploadForm({
                   ))}
                 </SelectContent>
               </Select>
+              {selectedProduct && (
+                <p className="text-sm text-muted-foreground">
+                  {selectedProduct.description}
+                </p>
+              )}
               <FormMessage />
             </FormItem>
           )}

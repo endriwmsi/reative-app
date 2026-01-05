@@ -199,11 +199,11 @@ export default function CreateSingleClientForm({
               name="productId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Produto/Serviço</FormLabel>
+                  <FormLabel>Serviço</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione um produto" />
+                        <SelectValue placeholder="Selecione um serviço" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
