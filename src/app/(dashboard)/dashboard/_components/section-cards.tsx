@@ -1,8 +1,4 @@
-import {
-  IconTrendingDown,
-  IconTrendingUp,
-  IconUsers,
-} from "@tabler/icons-react";
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 import type { DashboardMetrics } from "@/actions/dashboard/dashboard-metrics.action";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,7 +27,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
 
   return (
     <div className="overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
-      <div className="flex gap-4 px-4 lg:grid lg:grid-cols-4 lg:gap-4 lg:px-6 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs">
+      <div className="flex gap-4 px-4 lg:grid lg:grid-cols-3 lg:gap-4 lg:px-6 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs">
         {/* <Card className="@container/card min-w-[280px] flex-shrink-0 lg:min-w-0 lg:flex-shrink">
         <CardHeader>
           <CardDescription>Saldo Disponível</CardDescription>
@@ -182,7 +178,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
           </CardFooter>
         </Card>
 
-        <Card className="@container/card min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
+        {/* <Card className="@container/card min-w-[280px] shrink-0 lg:min-w-0 lg:shrink">
           <CardHeader>
             <CardDescription>Indicados Diretos</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -210,7 +206,7 @@ const SectionCards = ({ metrics }: SectionCardsProps) => {
               Parceiros indicados por você
             </div>
           </CardFooter>
-        </Card>
+        </Card> */}
 
         {/* <Card className="@container/card">
         <CardHeader>

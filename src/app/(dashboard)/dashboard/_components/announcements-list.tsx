@@ -2,7 +2,12 @@
 
 import { Calendar } from "lucide-react";
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -45,15 +50,15 @@ export function AnnouncementsList({ announcements }: AnnouncementsListProps) {
 
   return (
     <>
-      <ScrollArea className="h-36 pr-4">
-        <div className="space-y-4">
+      <ScrollArea className="h-40 lg:h-[300px] pr-4">
+        <div className="space-y-2">
           {announcements.map((announcement) => (
             <Card
               key={announcement.id}
               tabIndex={0}
               className={cn(
-                "flex flex-col gap-2 rounded-lg border p-4 text-left transition-all hover:bg-muted/50 cursor-pointer",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "cursor-pointer transition-all hover:bg-muted/50",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-w-[295px]",
               )}
               onClick={() => setSelectedAnnouncement(announcement)}
               onKeyDown={(e) => {
@@ -63,21 +68,12 @@ export function AnnouncementsList({ announcements }: AnnouncementsListProps) {
                 }
               }}
             >
-              <div className="flex w-full flex-col gap-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold leading-none tracking-tight">
-                    {announcement.title}
-                  </span>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {new Date(announcement.createdAt).toLocaleDateString(
-                      "pt-BR",
-                    )}
-                  </span>
-                </div>
-              </div>
-              <p className="line-clamp-2 text-sm text-muted-foreground">
-                {announcement.content}
-              </p>
+              <CardContent>
+                <CardTitle>{announcement.title}</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground line-clamp-2 mt-2">
+                  {announcement.content}
+                </CardDescription>
+              </CardContent>
             </Card>
           ))}
         </div>

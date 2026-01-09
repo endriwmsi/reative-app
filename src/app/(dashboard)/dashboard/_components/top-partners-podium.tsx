@@ -24,7 +24,7 @@ const TopPartnersPodium = async () => {
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <IconTrophy className="size-5 text-yellow-500" />
-            Top Usuários
+            Top Parceiros
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -98,10 +98,10 @@ const TopPartnersPodium = async () => {
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg">
           <IconTrophy className="size-5 text-yellow-500" />
-          Top Usuários
+          Top Parceiros
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Ranking de clientes enviados por parceiros
+          Ranking por clientes enviados por parceiros
         </p>
       </CardHeader>
       <CardContent className="pb-6">

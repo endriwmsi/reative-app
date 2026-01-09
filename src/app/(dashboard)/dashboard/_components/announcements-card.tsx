@@ -3,8 +3,21 @@ import { getAnnouncements } from "@/actions/announcement/announcement.action";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnnouncementsList } from "./announcements-list";
 
-const AnnouncementsCard = async () => {
-  const announcements = await getAnnouncements();
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+}
+
+interface AnnouncementsCardProps {
+  announcements?: Announcement[];
+}
+
+const AnnouncementsCard = async ({
+  announcements: providedAnnouncements,
+}: AnnouncementsCardProps = {}) => {
+  const announcements = providedAnnouncements ?? (await getAnnouncements());
 
   return (
     <Card className="h-full flex flex-col">

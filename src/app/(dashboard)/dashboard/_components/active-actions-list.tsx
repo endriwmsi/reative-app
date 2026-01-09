@@ -22,37 +22,23 @@ export async function ActiveActionsList() {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[400px] px-6 pb-6">
-          <div className="space-y-4">
+        <ScrollArea className="h-[400px] lg:h-auto px-6 pb-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {actions.map((action) => (
               <div
                 key={action.id}
-                className="border rounded-xl p-4 space-y-4 bg-card/50 hover:bg-card/80 transition-colors"
+                className="border rounded-xl p-4 flex flex-col justify-between gap-4 bg-card/50 hover:bg-card/80 transition-colors"
+                title={`Ação criada em: ${format(new Date(action.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}`}
               >
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                   <div>
                     <h3 className="font-semibold text-lg text-primary">
                       {action.name}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10">
-                        Início:{" "}
-                        {format(new Date(action.startDate), "dd/MM/yyyy", {
-                          locale: ptBR,
-                        })}
-                      </span>
-                      <span>→</span>
-                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10">
-                        Fim:{" "}
-                        {format(new Date(action.endDate), "dd/MM/yyyy", {
-                          locale: ptBR,
-                        })}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2 border-t">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t mt-auto">
                   <StatusItem
                     label="Boa Vista"
                     status={action.boaVistaStatus}
