@@ -170,11 +170,39 @@ export default function CreateExcelUploadForm({
         return;
       }
 
+      // Validação adicional para garantir que temos clientes válidos
+      if (!result.data || result.data.length === 0) {
+        toast.error("Nenhum cliente válido encontrado no arquivo Excel");
+        return;
+      }
+
+      // Validar cada cliente individualmente
+      const validClients = result.data.filter((client) => {
+        const hasValidName = client.name && client.name.trim().length >= 2;
+        const cleanDocument = client.document.replace(/\D/g, "");
+        const hasValidDocument =
+          cleanDocument.length === 11 || cleanDocument.length === 14;
+        return hasValidName && hasValidDocument;
+      });
+
+      if (validClients.length === 0) {
+        toast.error(
+          "Nenhum cliente com dados válidos (nome com pelo menos 2 caracteres e CPF/CNPJ válido) encontrado no arquivo",
+        );
+        return;
+      }
+
+      if (validClients.length < result.data.length) {
+        toast.warning(
+          `${result.data.length - validClients.length} cliente(s) com dados inválidos foram ignorados. Processando ${validClients.length} cliente(s) válido(s).`,
+        );
+      }
+
       // Depois cria o envio com os dados do Excel
       const submissionResult = await createSubmission(userId, {
         title: data.title,
         productId: parseInt(data.productId),
-        clients: result.data,
+        clients: validClients,
         notes: data.notes || "",
         couponId: couponValidation.couponId || "",
       });

@@ -11,7 +11,19 @@ export const excelUploadSchema = z.object({
     .string()
     .max(500, "Observações devem ter no máximo 500 caracteres")
     .optional(),
-  file: z.any().optional(),
+  file: z
+    .any()
+    .refine((file) => file instanceof File, {
+      message: "Arquivo Excel é obrigatório",
+    })
+    .refine(
+      (file) =>
+        file instanceof File &&
+        (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")),
+      {
+        message: "Arquivo deve ser um Excel (.xlsx ou .xls)",
+      },
+    ),
 });
 
 export type ExcelUploadFormData = z.infer<typeof excelUploadSchema>;

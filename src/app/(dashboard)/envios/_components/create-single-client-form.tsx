@@ -80,9 +80,28 @@ export default function CreateSingleClientForm({
   const onSubmit = async (values: z.infer<typeof singleClientSchema>) => {
     setLoading(true);
     try {
+      // Validação adicional para garantir que temos dados válidos do cliente
+      const cleanedName = values.name.trim();
+      const cleanedDocument = values.document.replace(/\D/g, "");
+
+      if (!cleanedName || cleanedName.length < 2) {
+        toast.error("Nome do cliente deve ter pelo menos 2 caracteres");
+        return;
+      }
+
+      if (
+        !cleanedDocument ||
+        (cleanedDocument.length !== 11 && cleanedDocument.length !== 14)
+      ) {
+        toast.error(
+          "Documento deve ser um CPF (11 dígitos) ou CNPJ (14 dígitos) válido",
+        );
+        return;
+      }
+
       const clientData = {
-        name: values.name,
-        document: values.document.replace(/\D/g, ""), // Remove formatação antes de enviar
+        name: cleanedName,
+        document: cleanedDocument,
       };
 
       // biome-ignore lint/style/noNonNullAssertion: false positive

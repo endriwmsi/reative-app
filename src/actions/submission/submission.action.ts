@@ -30,6 +30,49 @@ export async function createSubmission(
   submissionData: SubmissionData,
 ) {
   try {
+    // Validação inicial: verificar se temos clientes
+    if (!submissionData.clients || submissionData.clients.length === 0) {
+      return {
+        success: false,
+        error: "É necessário informar pelo menos um cliente para criar o envio",
+      };
+    }
+
+    // Validar cada cliente individualmente
+    const validClients = submissionData.clients.filter((client) => {
+      const hasValidName = client.name && client.name.trim().length >= 2;
+      const cleanDocument = client.document.replace(/\D/g, "");
+      const hasValidDocument =
+        cleanDocument.length === 11 || cleanDocument.length === 14;
+      return hasValidName && hasValidDocument;
+    });
+
+    if (validClients.length === 0) {
+      return {
+        success: false,
+        error:
+          "Nenhum cliente com dados válidos (nome com pelo menos 2 caracteres e documento válido) foi encontrado",
+      };
+    }
+
+    // Usar apenas clientes válidos
+    submissionData.clients = validClients;
+
+    // Remover duplicatas baseado no documento (CPF/CNPJ)
+    const originalCount = submissionData.clients.length;
+    const uniqueClients = submissionData.clients.filter(
+      (client, index, self) => {
+        const cleanDocument = client.document.replace(/\D/g, "");
+        return (
+          index ===
+          self.findIndex((c) => c.document.replace(/\D/g, "") === cleanDocument)
+        );
+      },
+    );
+
+    const duplicatesRemoved = originalCount - uniqueClients.length;
+    submissionData.clients = uniqueClients;
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -157,10 +200,16 @@ export async function createSubmission(
     await updateSubmissionStatus(newSubmission.id);
 
     revalidatePath("/envios");
+
+    let message = `Envio criado com sucesso! ${quantity} cliente(s) adicionado(s).`;
+    if (duplicatesRemoved > 0) {
+      message += ` (${duplicatesRemoved} duplicata(s) removida(s))`;
+    }
+
     return {
       success: true,
       data: newSubmission,
-      message: `Envio criado com sucesso! ${quantity} cliente(s) adicionado(s).`,
+      message,
     };
   } catch (error) {
     console.error("Erro ao criar envio:", error);

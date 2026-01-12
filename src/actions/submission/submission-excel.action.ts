@@ -91,8 +91,13 @@ export async function processExcelFile(
         document: sanitizeDocument(document),
       };
 
-      // Validar dados básicos
-      if (client.name.length > 0 && client.document.length > 0) {
+      // Validar dados mais rigorosamente
+      const cleanDocument = client.document.replace(/\D/g, "");
+      const isValidClient =
+        client.name.length >= 2 &&
+        (cleanDocument.length === 11 || cleanDocument.length === 14);
+
+      if (isValidClient) {
         clients.push(client);
       }
     }
@@ -100,7 +105,8 @@ export async function processExcelFile(
     if (clients.length === 0) {
       return {
         success: false,
-        error: "Nenhum cliente válido encontrado no arquivo",
+        error:
+          "Nenhum cliente válido encontrado no arquivo. Verifique se o arquivo contém nomes com pelo menos 2 caracteres e documentos (CPF/CNPJ) válidos.",
       };
     }
 
