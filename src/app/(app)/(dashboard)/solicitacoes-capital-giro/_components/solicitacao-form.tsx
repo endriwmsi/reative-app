@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info } from "lucide-react";
+import { Info, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -36,11 +36,15 @@ const solicitacaoFormSchema = z
       .string()
       .min(2, "Estado Civíl deve ter pelo menos 2 caracteres"),
     cpf: z.string().min(11, "Documento deve ter pelo menos 11 caracteres"),
+    estadoNascimento: z.string().min(2, "Estado de nascimento é obrigatório"),
     enderecoPessoa: z
       .string()
       .min(5, "Endereço deve ter pelo menos 5 caracteres"),
     cidadePessoa: z.string().min(2, "Cidade deve ter pelo menos 2 caracteres"),
     estadoPessoa: z.string().min(2, "Estado deve ter pelo menos 2 caracteres"),
+
+    nomePartner: z.string().min(1, "Nome do parceiro é obrigatório"),
+    documento: z.any().optional(),
 
     razaoSocial: z
       .string()
@@ -89,7 +93,14 @@ const formatCurrency = (value: string) => {
   }).format(Number.isNaN(floatValue) ? 0 : floatValue);
 };
 
-const SolicitacaoForm = () => {
+interface SolicitacaoFormProps {
+  userSession: {
+    id: string;
+    name: string;
+  };
+}
+
+const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -100,10 +111,14 @@ const SolicitacaoForm = () => {
       phone: "",
       email: "",
       cpf: "",
+      estadoNascimento: "",
       enderecoPessoa: "",
       cidadePessoa: "",
       estadoPessoa: "",
       estadoCivil: "",
+
+      nomePartner: userSession.name,
+      documento: null,
 
       razaoSocial: "",
       cnpj: "",
@@ -119,7 +134,12 @@ const SolicitacaoForm = () => {
   const onSubmit = async (values: z.infer<typeof solicitacaoFormSchema>) => {
     setLoading(true);
     try {
-      const result = await createCapitalGiro(values);
+      // Preparar os dados, excluindo o arquivo do form data
+      const { documento, ...formData } = values;
+      const result = await createCapitalGiro({
+        ...formData,
+        documento: documento as File | undefined,
+      });
       if (result.success) {
         toast.success("Solicitação enviada com sucesso!");
         router.push("/solicitacoes-capital-giro");
@@ -144,7 +164,7 @@ const SolicitacaoForm = () => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome Completo</FormLabel>
+                  <FormLabel>Nome Completo do Cliente*</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: João da Silva" {...field} />
                   </FormControl>
@@ -158,7 +178,7 @@ const SolicitacaoForm = () => {
               name="cpf"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CPF</FormLabel>
+                  <FormLabel>CPF*</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="000.000.000-00"
@@ -179,7 +199,7 @@ const SolicitacaoForm = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email*</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -197,7 +217,7 @@ const SolicitacaoForm = () => {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone</FormLabel>
+                  <FormLabel>Telefone*</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="(00) 00000-0000"
@@ -218,7 +238,7 @@ const SolicitacaoForm = () => {
               name="estadoCivil"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Estado Civil</FormLabel>
+                  <FormLabel>Estado Civil*</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -245,10 +265,90 @@ const SolicitacaoForm = () => {
 
             <FormField
               control={form.control}
+              name="estadoNascimento"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estado de Nascimento*</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: SP, RJ, MG..."
+                      maxLength={2}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="nomePartner"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Parceiro*</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled className="bg-muted" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="documento"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Upload de TERMO DE AUTORIZAÇÃO*</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="file"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Validar tipo de arquivo
+                            if (
+                              ![
+                                "image/jpeg",
+                                "image/jpg",
+                                "image/png",
+                              ].includes(file.type)
+                            ) {
+                              toast.error(
+                                "Apenas arquivos JPG e PNG são permitidos",
+                              );
+                              return;
+                            }
+                            // Validar tamanho (5MB máximo)
+                            if (file.size > 5 * 1024 * 1024) {
+                              toast.error("Arquivo deve ter no máximo 5MB");
+                              return;
+                            }
+                            field.onChange(file);
+                          }
+                        }}
+                        className="cursor-pointer"
+                      />
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="enderecoPessoa"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Endereço Residencial</FormLabel>
+                  <FormLabel>Endereço Residencial*</FormLabel>
                   <FormControl>
                     <Input placeholder="Rua, Número, Bairro" {...field} />
                   </FormControl>
@@ -263,7 +363,7 @@ const SolicitacaoForm = () => {
                 name="cidadePessoa"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cidade</FormLabel>
+                    <FormLabel>Cidade*</FormLabel>
                     <FormControl>
                       <Input placeholder="Cidade" {...field} />
                     </FormControl>
@@ -277,7 +377,7 @@ const SolicitacaoForm = () => {
                 name="estadoPessoa"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado</FormLabel>
+                    <FormLabel>Estado*</FormLabel>
                     <FormControl>
                       <Input placeholder="UF" maxLength={2} {...field} />
                     </FormControl>
@@ -294,7 +394,7 @@ const SolicitacaoForm = () => {
                 render={({ field }) => (
                   <FormItem className="w-1/2">
                     <FormLabel className="text-xs">
-                      Possui restrição CPF/CNPJ?
+                      Possui restrição CPF/CNPJ?*
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -321,7 +421,7 @@ const SolicitacaoForm = () => {
                   name="valorRestricao"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor da Restrição</FormLabel>
+                      <FormLabel>Valor da Restrição*</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="R$ 0,00"
@@ -349,7 +449,7 @@ const SolicitacaoForm = () => {
               name="razaoSocial"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Razão Social</FormLabel>
+                  <FormLabel>Razão Social*</FormLabel>
                   <FormControl>
                     <Input placeholder="Razão Social Ltda" {...field} />
                   </FormControl>
@@ -384,7 +484,7 @@ const SolicitacaoForm = () => {
               name="faturamento"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Faturamento Mensal</FormLabel>
+                  <FormLabel>Faturamento Mensal*</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="R$ 0,00"
@@ -404,7 +504,7 @@ const SolicitacaoForm = () => {
               name="enderecoEmpresa"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Endereço Comercial</FormLabel>
+                  <FormLabel>Endereço Comercial*</FormLabel>
                   <FormControl>
                     <Input placeholder="Rua, Número, Bairro" {...field} />
                   </FormControl>
@@ -419,7 +519,7 @@ const SolicitacaoForm = () => {
                 name="cidadeEmpresa"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cidade</FormLabel>
+                    <FormLabel>Cidade*</FormLabel>
                     <FormControl>
                       <Input placeholder="Cidade" {...field} />
                     </FormControl>
@@ -433,7 +533,7 @@ const SolicitacaoForm = () => {
                 name="estadoEmpresa"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado</FormLabel>
+                    <FormLabel>Estado*</FormLabel>
                     <FormControl>
                       <Input placeholder="UF" maxLength={2} {...field} />
                     </FormControl>

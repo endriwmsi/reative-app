@@ -17,9 +17,13 @@ export const capitalGiro = pgTable("capital_giro", {
   email: text("email").notNull(),
   estadoCivil: text("estado_civil").notNull(),
   cpf: text("cpf").notNull(),
+  estadoNascimento: text("estado_nascimento").notNull(),
   enderecoPessoa: text("endereco_pessoa").notNull(),
   cidadePessoa: text("cidade_pessoa").notNull(),
   estadoPessoa: text("estado_pessoa").notNull(),
+
+  nomePartner: text("nome_partner").notNull(),
+  documentoUrl: text("documento_url"),
 
   razaoSocial: text("razao_social").notNull(),
   cnpj: text("cnpj").notNull(),

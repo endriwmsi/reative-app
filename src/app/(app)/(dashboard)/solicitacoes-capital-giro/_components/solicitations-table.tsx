@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -53,9 +53,12 @@ interface CapitalGiro {
   email: string;
   estadoCivil: string;
   cpf: string;
+  estadoNascimento: string;
   enderecoPessoa: string;
   cidadePessoa: string;
   estadoPessoa: string;
+  nomePartner: string;
+  documentoUrl?: string | null;
   razaoSocial: string;
   cnpj: string;
   faturamento: string;
@@ -95,6 +98,7 @@ const customGlobalFilter = (
     item.name.toLowerCase().includes(searchValue) ||
     item.email.toLowerCase().includes(searchValue) ||
     item.cpf.includes(searchValue) ||
+    item.nomePartner.toLowerCase().includes(searchValue) ||
     (item.cnpj?.includes(searchValue) ?? false)
   );
 };
@@ -221,6 +225,15 @@ export default function SolicitationsTable({
       ),
     },
     {
+      accessorKey: "nomePartner",
+      header: "Parceiro",
+      cell: ({ row }) => (
+        <div className="text-sm font-medium text-blue-600">
+          {row.original.nomePartner}
+        </div>
+      ),
+    },
+    {
       accessorKey: "cpf",
       header: "Documento",
       cell: ({ row }) => (
@@ -231,6 +244,9 @@ export default function SolicitationsTable({
               CNPJ: {row.original.cnpj}
             </span>
           )}
+          <span className="text-xs text-muted-foreground">
+            Nascimento: {row.original.estadoNascimento}
+          </span>
         </div>
       ),
     },
@@ -337,61 +353,92 @@ export default function SolicitationsTable({
         const solicitation = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Ações</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(solicitation.id)}
+          <div className="flex items-center gap-2">
+            {/* Botão para visualizar documento */}
+            {solicitation.documentoUrl && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  window.open(solicitation.documentoUrl!, "_blank")
+                }
+                className="h-8 w-8 p-0"
+                title="Visualizar Documento"
               >
-                Copiar ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">Visualizar Documento</span>
+              </Button>
+            )}
 
-              {isAdmin && (
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger disabled={isUpdating}>
-                    Alterar Status
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuRadioGroup
-                      value={solicitation.status}
-                      onValueChange={(value) =>
-                        handleStatusChange(
-                          solicitation.id,
-                          value as CapitalGiro["status"],
-                        )
-                      }
-                    >
-                      {Object.entries(statusMap).map(([key, { label }]) => (
-                        <DropdownMenuRadioItem key={key} value={key}>
-                          {label}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              )}
+            {/* Menu de ações */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Ações</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => navigator.clipboard.writeText(solicitation.id)}
+                >
+                  Copiar ID
+                </DropdownMenuItem>
 
-              {isAdmin && (
-                <>
-                  <DropdownMenuSeparator />
+                {solicitation.documentoUrl && (
                   <DropdownMenuItem
-                    onClick={() => handleDeleteClick(solicitation)}
-                    className="text-red-600 focus:text-red-600"
+                    onClick={() =>
+                      window.open(solicitation.documentoUrl!, "_blank")
+                    }
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remover
+                    <Eye className="h-4 w-4 mr-2" />
+                    Visualizar Documento
                   </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                )}
+
+                <DropdownMenuSeparator />
+
+                {isAdmin && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger disabled={isUpdating}>
+                      Alterar Status
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuRadioGroup
+                        value={solicitation.status}
+                        onValueChange={(value) =>
+                          handleStatusChange(
+                            solicitation.id,
+                            value as CapitalGiro["status"],
+                          )
+                        }
+                      >
+                        {Object.entries(statusMap).map(([key, { label }]) => (
+                          <DropdownMenuRadioItem key={key} value={key}>
+                            {label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )}
+
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteClick(solicitation)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remover
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
@@ -440,7 +487,7 @@ export default function SolicitationsTable({
             columns={columns}
             data={solicitations}
             globalFilterFn={customGlobalFilter}
-            searchPlaceholder="Buscar por nome, email ou documento..."
+            searchPlaceholder="Buscar por nome, email, parceiro ou documento..."
           />
         </CardContent>
       </Card>

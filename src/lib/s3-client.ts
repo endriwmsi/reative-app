@@ -23,7 +23,7 @@ export const S3_BUCKET =
 export async function uploadToS3(
   file: Buffer,
   key: string,
-  contentType: string = "application/octet-stream"
+  contentType: string = "application/octet-stream",
 ): Promise<string> {
   try {
     const upload = new Upload({
@@ -82,6 +82,16 @@ export function generateAvatarKey(userId: string, fileName: string): string {
  */
 export function generateCreativeKey(fileName: string): string {
   return generateS3Key("creatives", fileName);
+}
+
+/**
+ * Generates a unique S3 key for capital giro documents.
+ */
+export function generateCapitalGiroKey(
+  userId: string,
+  fileName: string,
+): string {
+  return generateS3Key(`capital-giro/${userId}`, fileName);
 }
 
 /**

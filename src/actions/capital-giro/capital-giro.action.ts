@@ -8,6 +8,12 @@ import type { SolicitacaoFormValues } from "@/app/(app)/(dashboard)/solicitacoes
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { capitalGiro, user } from "@/db/schema";
+import { generateCapitalGiroKey, getS3Url, uploadToS3 } from "@/lib/s3-client";
+
+interface CreateCapitalGiroData
+  extends Omit<SolicitacaoFormValues, "documento"> {
+  documento?: File;
+}
 
 export async function markCapitalGiroAsDownloaded(ids: string[]) {
   try {
@@ -44,7 +50,7 @@ export async function markCapitalGiroAsDownloaded(ids: string[]) {
   }
 }
 
-export async function createCapitalGiro(data: SolicitacaoFormValues) {
+export async function createCapitalGiro(data: CreateCapitalGiroData) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -54,10 +60,37 @@ export async function createCapitalGiro(data: SolicitacaoFormValues) {
       return { success: false, error: "Usuário não autenticado" };
     }
 
+    let documentoUrl: string | null = null;
+
+    // Upload do documento se fornecido
+    if (data.documento) {
+      try {
+        const arrayBuffer = await data.documento.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const key = generateCapitalGiroKey(
+          session.user.id,
+          data.documento.name,
+        );
+
+        await uploadToS3(buffer, key, data.documento.type);
+        documentoUrl = getS3Url(key);
+      } catch (uploadError) {
+        console.error("Erro no upload do documento:", uploadError);
+        return {
+          success: false,
+          error: "Erro ao fazer upload do documento",
+        };
+      }
+    }
+
+    const { documento, ...formData } = data;
+
     await db.insert(capitalGiro).values({
       id: nanoid(),
       userId: session.user.id,
-      ...data,
+      ...formData,
+      documentoUrl,
       status: "pending",
     });
 

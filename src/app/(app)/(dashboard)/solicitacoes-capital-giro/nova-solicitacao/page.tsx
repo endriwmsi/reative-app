@@ -1,6 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import SolicitacaoForm from "../_components/solicitacao-form";
 
@@ -10,7 +13,13 @@ export const metadata: Metadata = {
     "Visualise suas solicitações de capital de giro de forma fácil e rápida.",
 };
 
-const NovaSolicitacaoPage = () => {
+const NovaSolicitacaoPage = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) redirect("/login");
+
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-3xl">
       <div className="flex items-center gap-4">
@@ -23,12 +32,17 @@ const NovaSolicitacaoPage = () => {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Solicitação de Capital de Giro</h1>
           <p className="text-muted-foreground">
-            Escolha o tipo de envio que deseja criar
+            Preencha os dados para solicitar capital de giro
           </p>
         </div>
       </div>
 
-      <SolicitacaoForm />
+      <SolicitacaoForm
+        userSession={{
+          id: session.user.id,
+          name: session.user.name,
+        }}
+      />
     </div>
   );
 };
