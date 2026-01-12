@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Upload } from "lucide-react";
+import { Download, Info, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import z from "zod";
 import { createCapitalGiro } from "@/actions/capital-giro/capital-giro.action";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -44,7 +45,22 @@ const solicitacaoFormSchema = z
     estadoPessoa: z.string().min(2, "Estado deve ter pelo menos 2 caracteres"),
 
     nomePartner: z.string().min(1, "Nome do parceiro é obrigatório"),
-    documento: z.any().optional(),
+    documento: z
+      .any()
+      .refine((file) => file instanceof File, {
+        message: "Upload do termo de autorização é obrigatório",
+      })
+      .refine(
+        (file) =>
+          file instanceof File &&
+          ["image/jpeg", "image/jpg", "image/png"].includes(file.type),
+        {
+          message: "Apenas arquivos JPG e PNG são permitidos",
+        },
+      )
+      .refine((file) => file instanceof File && file.size <= 5 * 1024 * 1024, {
+        message: "Arquivo deve ter no máximo 5MB",
+      }),
 
     razaoSocial: z
       .string()
@@ -103,6 +119,17 @@ interface SolicitacaoFormProps {
 const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Função para baixar arquivo modelo
+  const handleDownloadFile = () => {
+    // Opção 1: Download de arquivo público (na pasta public)
+    const link = document.createElement("a");
+    link.href =
+      "/assets/docs/termo-de-autorizacao-para-validacao-de-credito.pdf"; // Caminho para o arquivo na pasta public
+    link.download = "Termo de Autorização para Validação de Crédito.pdf";
+    link.click();
+    toast.success("Download iniciado!");
+  };
 
   const form = useForm<z.infer<typeof solicitacaoFormSchema>>({
     resolver: zodResolver(solicitacaoFormSchema),
@@ -300,7 +327,19 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
               name="documento"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Upload de TERMO DE AUTORIZAÇÃO*</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Upload de TERMO DE AUTORIZAÇÃO*</FormLabel>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadFile}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Baixar Modelo
+                    </Button>
+                  </div>
                   <FormControl>
                     <div className="flex items-center gap-4">
                       <Input
