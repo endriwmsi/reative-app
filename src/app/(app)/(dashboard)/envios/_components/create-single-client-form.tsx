@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type z from "zod";
 import { validateCoupon } from "@/actions/coupon/coupon.action";
 import { createSubmission } from "@/actions/submission/submission.action";
+import { singleClientSchema } from "@/app/(app)/(dashboard)/envios/_schemas/single-client-schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +29,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { CleanNameAction } from "@/db/schema/clean-name-action";
 import { formatCNPJ, formatCPF } from "@/lib/utils";
-import { singleClientSchema } from "../_schemas/single-client-schema";
 
 interface Product {
   id: number;
