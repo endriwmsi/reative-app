@@ -145,7 +145,7 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
       estadoCivil: "",
 
       nomePartner: userSession.name,
-      documento: null,
+      documento: undefined,
 
       razaoSocial: "",
       cnpj: "",
