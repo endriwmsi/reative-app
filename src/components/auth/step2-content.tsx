@@ -2,7 +2,7 @@ import type { Control } from "react-hook-form";
 import { FormControl, FormField, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { formatCNPJ, formatCPF } from "@/lib/utils";
-import type { RegisterFormData } from "../../app/(auth)/_schemas/register-schemas";
+import type { RegisterFormData } from "../../app/(app)/(auth)/_schemas/register-schemas";
 
 interface Step2ContentProps {
   control: Control<RegisterFormData>;

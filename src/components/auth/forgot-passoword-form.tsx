@@ -6,13 +6,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
-import { forgotPasswordSchema } from "@/app/(auth)/_schemas/forgot-password-schema";
+import { forgotPasswordSchema } from "@/app/(app)/(auth)/_schemas/forgot-password-schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Form, FormControl, FormField, FormMessage } from "../ui/form";
 import { requestPasswordReset } from "@/lib/auth-client";
+import { Form, FormControl, FormField, FormMessage } from "../ui/form";
 // import { Icons } from "../../../../components/icons";
 
 export const ForgotPasswordForm = () => {

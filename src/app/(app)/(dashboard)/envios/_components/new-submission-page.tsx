@@ -11,8 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ExcelUploadForm from "../_components/create-excel-upload-form";
-import CreateSingleClientForm from "../_components/create-single-client-form";
+import ExcelUploadForm from "./create-excel-upload-form";
+import CreateSingleClientForm from "./create-single-client-form";
 import "@/types/auth";
 import type { CleanNameAction } from "@/db/schema/clean-name-action";
 

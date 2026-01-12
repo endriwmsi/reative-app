@@ -3,7 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
-import type { ProductFormData } from "@/app/(dashboard)/produtos/_schemas/new-product-schema";
+import type { ProductFormData } from "@/app/(app)/(dashboard)/produtos/_schemas/new-product-schema";
 import { db } from "@/db/client";
 import { product, user, userProductPrice } from "@/db/schema";
 import { formatCurrency } from "@/lib/utils";

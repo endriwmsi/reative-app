@@ -6,13 +6,19 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
-import { resetPasswordSchema } from "@/app/(auth)/_schemas/reset-password-schema";
+import { resetPasswordSchema } from "@/app/(app)/(auth)/_schemas/reset-password-schema";
 import { Button } from "@/components/ui/button";
 import { resetPassword } from "@/lib/auth-client";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
-import { Spinner } from "../ui/spinner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "../ui/form";
 import { Label } from "../ui/label";
 import { PasswordInput } from "../ui/password-input";
+import { Spinner } from "../ui/spinner";
 
 interface ResetPasswordFormProps {
   token: string;

@@ -4,7 +4,7 @@ import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
-import type { loginSchema } from "@/app/(auth)/_schemas/login-schema";
+import type { loginSchema } from "@/app/(app)/(auth)/_schemas/login-schema";
 import { auth, type ErrorCode } from "@/auth";
 
 type formData = z.infer<typeof loginSchema>;

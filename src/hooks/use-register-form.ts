@@ -10,7 +10,7 @@ import {
   step1Schema,
   step2Schema,
   step3Schema,
-} from "@/app/(auth)/_schemas/register-schemas";
+} from "@/app/(app)/(auth)/_schemas/register-schemas";
 
 export function useRegisterForm(referralCode: string) {
   const [currentStep, setCurrentStep] = useState(1);

@@ -1,6 +1,6 @@
 import { CrownIcon } from "lucide-react";
 import type { Metadata } from "next";
-import { SubscriptionView } from "@/app/(dashboard)/configuracoes/_components/subscription-view";
+import { SubscriptionView } from "@/app/(app)/(dashboard)/configuracoes/_components/subscription-view";
 
 export const metadata: Metadata = {
   title: "Hub LN - Assinatura",

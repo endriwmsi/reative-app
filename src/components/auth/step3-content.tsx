@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import type { RegisterFormData } from "../../app/(auth)/_schemas/register-schemas";
+import type { RegisterFormData } from "../../app/(app)/(auth)/_schemas/register-schemas";
 
 interface Step3ContentProps {
   control: Control<RegisterFormData>;

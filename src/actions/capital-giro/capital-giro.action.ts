@@ -4,7 +4,7 @@ import { desc, eq, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import type { SolicitacaoFormValues } from "@/app/(dashboard)/solicitacoes-capital-giro/_components/solicitacao-form";
+import type { SolicitacaoFormValues } from "@/app/(app)/(dashboard)/solicitacoes-capital-giro/_components/solicitacao-form";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
 import { capitalGiro, user } from "@/db/schema";

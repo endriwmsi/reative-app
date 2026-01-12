@@ -4,7 +4,7 @@ import AbacatePay from "abacatepay-nodejs-sdk";
 import { APIError } from "better-auth/api";
 import { eq, or } from "drizzle-orm";
 import type { z } from "zod";
-import type { registerSchema } from "@/app/(auth)/_schemas/register-schemas";
+import type { registerSchema } from "@/app/(app)/(auth)/_schemas/register-schemas";
 import { auth, type ErrorCode } from "@/auth";
 import { db } from "@/db/client";
 import { subscription, user } from "@/db/schema";
