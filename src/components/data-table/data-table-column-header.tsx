@@ -107,7 +107,7 @@ export function DataTableColumnHeader<TData, TValue>({
 
   // Função para renderizar opções de ordenação
   const renderSortOptions = () => {
-    if (!canSort || filterType !== "sort-only") return null;
+    if (!canSort) return null;
 
     return (
       <>

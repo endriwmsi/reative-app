@@ -33,6 +33,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
   globalFilterFn?: FilterFnOption<TData>;
   toolbarActions?: React.ReactNode;
+  initialSorting?: SortingState;
 }
 
 export function DataTable<TData, TValue>({
@@ -42,8 +43,9 @@ export function DataTable<TData, TValue>({
   searchPlaceholder,
   globalFilterFn,
   toolbarActions,
+  initialSorting = [],
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );

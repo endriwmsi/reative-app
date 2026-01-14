@@ -4,6 +4,7 @@ import { user } from "./user";
 export const capitalGiroStatusEnum = pgEnum("capital_giro_status", [
   "pending",
   "analyzing",
+  "pre-approved",
   "approved",
   "rejected",
 ]);

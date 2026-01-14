@@ -136,7 +136,7 @@ export async function deleteCapitalGiro(id: string) {
 
 export async function updateCapitalGiroStatus(
   id: string,
-  status: "pending" | "analyzing" | "approved" | "rejected",
+  status: "pending" | "analyzing" | "pre-approved" | "approved" | "rejected",
 ) {
   try {
     const session = await auth.api.getSession({

@@ -67,7 +67,7 @@ interface CapitalGiro {
   estadoEmpresa: string;
   temRestricao: string;
   valorRestricao?: string | null;
-  status: "pending" | "analyzing" | "approved" | "rejected";
+  status: "pending" | "analyzing" | "pre-approved" | "approved" | "rejected";
   isDownloaded: boolean;
   downloadedAt?: Date | null;
   createdAt: Date;
@@ -82,6 +82,10 @@ interface SolicitationsTableProps {
 const statusMap = {
   pending: { label: "Pendente", color: "bg-yellow-500 hover:bg-yellow-600" },
   analyzing: { label: "Em Análise", color: "bg-blue-500 hover:bg-blue-600" },
+  "pre-approved": {
+    label: "Pré-Aprovado",
+    color: "bg-purple-500 hover:bg-purple-600",
+  },
   approved: { label: "Aprovado", color: "bg-green-500 hover:bg-green-600" },
   rejected: { label: "Rejeitado", color: "bg-red-500 hover:bg-red-600" },
 };
@@ -223,15 +227,25 @@ export default function SolicitationsTable({
           </span>
         </div>
       ),
+      filterFn: (row, id, value) => {
+        const name = row.getValue(id) as string;
+        return name.toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
       accessorKey: "nomePartner",
-      header: "Parceiro",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Parceiro" />
+      ),
       cell: ({ row }) => (
         <div className="text-sm font-medium text-blue-600">
           {row.original.nomePartner}
         </div>
       ),
+      filterFn: (row, id, value) => {
+        const partner = row.getValue(id) as string;
+        return partner.toLowerCase().includes(value.toLowerCase());
+      },
     },
     {
       accessorKey: "cpf",
@@ -488,6 +502,7 @@ export default function SolicitationsTable({
             data={solicitations}
             globalFilterFn={customGlobalFilter}
             searchPlaceholder="Buscar por nome, email, parceiro ou documento..."
+            initialSorting={[{ id: "name", desc: false }]}
           />
         </CardContent>
       </Card>
