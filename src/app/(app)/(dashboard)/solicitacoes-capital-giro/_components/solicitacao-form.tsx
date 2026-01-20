@@ -53,9 +53,11 @@ const solicitacaoFormSchema = z
       .refine(
         (file) =>
           file instanceof File &&
-          ["image/jpeg", "image/jpg", "image/png"].includes(file.type),
+          ["image/jpeg", "image/jpg", "image/png", "application/pdf"].includes(
+            file.type,
+          ),
         {
-          message: "Apenas arquivos JPG e PNG são permitidos",
+          message: "Apenas arquivos JPG, PNG e PDF são permitidos",
         },
       )
       .refine((file) => file instanceof File && file.size <= 5 * 1024 * 1024, {
@@ -344,7 +346,7 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
                     <div className="flex items-center gap-4">
                       <Input
                         type="file"
-                        accept=".jpg,.jpeg,.png"
+                        accept=".jpg,.jpeg,.png,.pdf"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -354,10 +356,11 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
                                 "image/jpeg",
                                 "image/jpg",
                                 "image/png",
+                                "application/pdf",
                               ].includes(file.type)
                             ) {
                               toast.error(
-                                "Apenas arquivos JPG e PNG são permitidos",
+                                "Apenas arquivos JPG, PNG e PDF são permitidos",
                               );
                               return;
                             }
@@ -375,7 +378,7 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
                     </div>
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Formatos aceitos: JPG, PNG. Tamanho máximo: 5MB
+                    Formatos aceitos: JPG, PNG, PDF. Tamanho máximo: 5MB
                   </p>
                   <FormMessage />
                 </FormItem>
