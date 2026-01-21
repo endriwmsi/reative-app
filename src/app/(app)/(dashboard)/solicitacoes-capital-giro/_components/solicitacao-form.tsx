@@ -47,22 +47,31 @@ const solicitacaoFormSchema = z
     nomePartner: z.string().min(1, "Nome do parceiro é obrigatório"),
     documento: z
       .any()
-      .refine((file) => file instanceof File, {
-        message: "Upload do termo de autorização é obrigatório",
+      .optional()
+      .refine((file) => !file || file instanceof File, {
+        message: "Arquivo inválido",
       })
       .refine(
         (file) =>
-          file instanceof File &&
-          ["image/jpeg", "image/jpg", "image/png", "application/pdf"].includes(
-            file.type,
-          ),
+          !file ||
+          (file instanceof File &&
+            [
+              "image/jpeg",
+              "image/jpg",
+              "image/png",
+              "application/pdf",
+            ].includes(file.type)),
         {
           message: "Apenas arquivos JPG, PNG e PDF são permitidos",
         },
       )
-      .refine((file) => file instanceof File && file.size <= 5 * 1024 * 1024, {
-        message: "Arquivo deve ter no máximo 5MB",
-      }),
+      .refine(
+        (file) =>
+          !file || (file instanceof File && file.size <= 10 * 1024 * 1024),
+        {
+          message: "Arquivo deve ter no máximo 10MB",
+        },
+      ),
 
     razaoSocial: z
       .string()
@@ -330,7 +339,7 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>Upload de TERMO DE AUTORIZAÇÃO*</FormLabel>
+                    <FormLabel>Upload de TERMO DE AUTORIZAÇÃO</FormLabel>
                     <Button
                       type="button"
                       variant="outline"
@@ -364,9 +373,9 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
                               );
                               return;
                             }
-                            // Validar tamanho (5MB máximo)
-                            if (file.size > 5 * 1024 * 1024) {
-                              toast.error("Arquivo deve ter no máximo 5MB");
+                            // Validar tamanho (10MB máximo)
+                            if (file.size > 10 * 1024 * 1024) {
+                              toast.error("Arquivo deve ter no máximo 10MB");
                               return;
                             }
                             field.onChange(file);
