@@ -53,16 +53,9 @@ const solicitacaoFormSchema = z
       })
       .refine(
         (file) =>
-          !file ||
-          (file instanceof File &&
-            [
-              "image/jpeg",
-              "image/jpg",
-              "image/png",
-              "application/pdf",
-            ].includes(file.type)),
+          !file || (file instanceof File && file.type === "application/pdf"),
         {
-          message: "Apenas arquivos JPG, PNG e PDF são permitidos",
+          message: "Apenas arquivos PDF são permitidos",
         },
       )
       .refine(
@@ -355,22 +348,13 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
                     <div className="flex items-center gap-4">
                       <Input
                         type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        accept=".pdf,application/pdf"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
                             // Validar tipo de arquivo
-                            if (
-                              ![
-                                "image/jpeg",
-                                "image/jpg",
-                                "image/png",
-                                "application/pdf",
-                              ].includes(file.type)
-                            ) {
-                              toast.error(
-                                "Apenas arquivos JPG, PNG e PDF são permitidos",
-                              );
+                            if (file.type !== "application/pdf") {
+                              toast.error("Apenas arquivos PDF são permitidos");
                               return;
                             }
                             // Validar tamanho (10MB máximo)
@@ -387,7 +371,8 @@ const SolicitacaoForm = ({ userSession }: SolicitacaoFormProps) => {
                     </div>
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Formatos aceitos: JPG, PNG, PDF. Tamanho máximo: 5MB
+                    ⚠️ Apenas arquivos em formato PDF são permitidos. Tamanho
+                    máximo: 10MB
                   </p>
                   <FormMessage />
                 </FormItem>
