@@ -97,6 +97,7 @@ export class PaymentService {
         .select({
           name: user.name,
           email: user.email,
+          phone: user.phone,
           cpf: user.cpf,
           cnpj: user.cnpj,
         })
@@ -129,6 +130,7 @@ export class PaymentService {
         name: userInfo.name || "Usuário",
         email: userInfo.email || "",
         cpfCnpj: document,
+        phone: userInfo.phone || "",
       });
 
       if (!customerResult.success || !customerResult.data?.id) {
