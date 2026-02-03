@@ -1,13 +1,6 @@
-import {
-  ArrowLeft,
-  DollarSign,
-  FileText,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, DollarSign, FileText, Users } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { calculateCommissionChain } from "@/actions/commission/commission.action";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -105,28 +98,28 @@ export default async function EnvioDetailPage({
     ? (clientsResult.data as ClientData[])
     : [];
 
-  // Calcular comissões para este envio
-  let totalCommission = 0;
-  let commissionData = null;
+  // // Calcular comissões para este envio
+  // let totalCommission = 0;
+  // let commissionData = null;
 
-  if (submission.userId && submission.productId) {
-    const commissionResult = await calculateCommissionChain({
-      submissionId: envioId,
-      buyerUserId: submission.userId,
-      productId: submission.productId,
-      quantity: submission.quantity,
-      totalAmount: submission.totalAmount,
-      unitPrice: submission.unitPrice,
-    });
+  // if (submission.userId && submission.productId) {
+  //   const commissionResult = await calculateCommissionChain({
+  //     submissionId: envioId,
+  //     buyerUserId: submission.userId,
+  //     productId: submission.productId,
+  //     quantity: submission.quantity,
+  //     totalAmount: submission.totalAmount,
+  //     unitPrice: submission.unitPrice,
+  //   });
 
-    if (commissionResult.success && commissionResult.data) {
-      commissionData = commissionResult.data;
-      totalCommission = commissionData.reduce(
-        (total, item) => total + parseFloat(item.totalCommission),
-        0,
-      );
-    }
-  }
+  //   if (commissionResult.success && commissionResult.data) {
+  //     commissionData = commissionResult.data;
+  //     totalCommission = commissionData.reduce(
+  //       (total, item) => total + parseFloat(item.totalCommission),
+  //       0,
+  //     );
+  //   }
+  // }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -220,7 +213,7 @@ export default async function EnvioDetailPage({
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Comissão Total
@@ -238,7 +231,7 @@ export default async function EnvioDetailPage({
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Submission Details */}
@@ -281,7 +274,7 @@ export default async function EnvioDetailPage({
       </Card>
 
       {/* Commission Details */}
-      {isAdmin && commissionData && commissionData.length > 0 && (
+      {/* {isAdmin && commissionData && commissionData.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Detalhes das Comissões</CardTitle>
@@ -323,7 +316,7 @@ export default async function EnvioDetailPage({
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Clients Table */}
       <Card>

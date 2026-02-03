@@ -188,7 +188,7 @@ export default async function EnviosPage() {
         </div>
       )}
 
-      <Card className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10">
+      {/* <Card className="border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg text-yellow-700 dark:text-yellow-500">
             ⚠️ AÇÃO NECESSÁRIA: Assine a Ficha Associativa
@@ -216,7 +216,7 @@ export default async function EnviosPage() {
             </a>
           </p>
         </CardContent>
-      </Card>
+      </Card> */}
 
       <SubmissionsTable
         submissions={submissionsResult.data as SubmissionData[]}
