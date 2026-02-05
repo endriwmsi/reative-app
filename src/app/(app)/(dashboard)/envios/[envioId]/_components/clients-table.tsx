@@ -40,16 +40,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { SubmissionClientStatus } from "@/db/schema";
 import { formatCNPJ, formatCPF, formatDate } from "@/lib/utils";
 
 type ClientData = {
   id: string;
   name: string;
   document: string;
-  status: string;
+  status: SubmissionClientStatus;
   createdAt: Date;
   submissionId: string;
   isPaid: boolean;
+};
+
+// Map database status to Portuguese label
+const statusLabels: Record<SubmissionClientStatus, string> = {
+  pending: "Pendente",
+  processing: "Processando",
+  approved: "Aprovado",
+  rejected: "Rejeitado",
+  cancelled: "Cancelado",
 };
 
 interface ClientsTableProps {
@@ -58,30 +68,18 @@ interface ClientsTableProps {
   isAdmin: boolean;
 }
 
-function getStatusColor(status: string) {
-  switch (status.toLowerCase()) {
-    // Status iniciais (pré-pagamento)
-    case "pendente":
+function getStatusColor(status: SubmissionClientStatus) {
+  switch (status) {
+    case "pending":
       return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-    case "processando":
+    case "processing":
       return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-    case "aprovado":
+    case "approved":
       return "bg-green-100 text-green-800 hover:bg-green-200";
-    case "rejeitado":
+    case "rejected":
       return "bg-red-100 text-red-800 hover:bg-red-200";
-
-    // Status pós-pagamento (processo jurídico)
-    case "deferido":
-      return "bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
-    case "indeferido":
-      return "bg-rose-100 text-rose-800 hover:bg-rose-200";
-    case "em_analise":
-      return "bg-purple-100 text-purple-800 hover:bg-purple-200";
-    case "finalizado":
-      return "bg-slate-100 text-slate-800 hover:bg-slate-200";
-    case "cancelado":
+    case "cancelled":
       return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-
     default:
       return "bg-gray-100 text-gray-800 hover:bg-gray-200";
   }
@@ -150,7 +148,10 @@ export default function ClientsTable({
     }
   };
 
-  const handleUpdateStatus = async (clientId: string, newStatus: string) => {
+  const handleUpdateStatus = async (
+    clientId: string,
+    newStatus: SubmissionClientStatus,
+  ) => {
     setIsUpdatingStatus(true);
     try {
       const result = await updateClientStatus(
@@ -173,7 +174,7 @@ export default function ClientsTable({
     }
   };
 
-  const handleBulkUpdateStatus = async (newStatus: string) => {
+  const handleBulkUpdateStatus = async (newStatus: SubmissionClientStatus) => {
     if (selectedIds.length === 0) return;
 
     setIsUpdatingStatus(true);
@@ -296,42 +297,34 @@ export default function ClientsTable({
       ),
       cell: ({ row }) => {
         const client = row.original;
-        const status = row.getValue("status") as string;
+        const status = row.getValue("status") as SubmissionClientStatus;
+
+        // Status options with English values and Portuguese labels
+        const statusOptions: {
+          value: SubmissionClientStatus;
+          label: string;
+        }[] = [
+          { value: "pending", label: "Pendente" },
+          { value: "processing", label: "Processando" },
+          { value: "approved", label: "Aprovado" },
+          { value: "rejected", label: "Rejeitado" },
+          { value: "cancelled", label: "Cancelado" },
+        ];
 
         if (isAdmin) {
-          // Admin pode sempre alterar status, mas com opções diferentes baseadas no pagamento
-          const statusOptions = client.isPaid
-            ? [
-                // Opções pós-pagamento (processo jurídico/análise)
-                { value: "aprovado", label: "Aprovado" },
-                { value: "rejeitado", label: "Rejeitado" },
-                { value: "deferido", label: "Deferido" },
-                { value: "indeferido", label: "Indeferido" },
-                { value: "em_analise", label: "Em Análise" },
-                { value: "finalizado", label: "Finalizado" },
-                { value: "cancelado", label: "Cancelado" },
-                // Manter opções anteriores para compatibilidade
-                { value: "pendente", label: "Pendente" },
-                { value: "processando", label: "Processando" },
-              ]
-            : [
-                // Opções pré-pagamento (processo inicial)
-                { value: "pendente", label: "Pendente" },
-                { value: "processando", label: "Processando" },
-                { value: "aprovado", label: "Aprovado" },
-                { value: "rejeitado", label: "Rejeitado" },
-              ];
-
           return (
             <Select
               value={status}
               onValueChange={(newStatus) =>
-                handleUpdateStatus(client.id, newStatus)
+                handleUpdateStatus(
+                  client.id,
+                  newStatus as SubmissionClientStatus,
+                )
               }
               disabled={isUpdatingStatus}
             >
               <SelectTrigger className="w-40">
-                <SelectValue />
+                <SelectValue>{statusLabels[status]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((option) => (
@@ -344,7 +337,11 @@ export default function ClientsTable({
           );
         }
 
-        return <Badge className={getStatusColor(status)}>{status}</Badge>;
+        return (
+          <Badge className={getStatusColor(status)}>
+            {statusLabels[status]}
+          </Badge>
+        );
       },
     },
     {
@@ -382,71 +379,30 @@ export default function ClientsTable({
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  {client.isPaid ? (
-                    // Opções pós-pagamento
-                    <>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "deferido")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Marcar como Deferido
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "indeferido")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Marcar como Indeferido
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "em_analise")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Marcar como Em Análise
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "finalizado")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Marcar como Finalizado
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    // Opções pré-pagamento
-                    <>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "aprovado")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Aprovar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "rejeitado")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Rejeitar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleUpdateStatus(client.id, "processando")
-                        }
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Marcar como Processando
-                      </DropdownMenuItem>
-                    </>
-                  )}
+                  <DropdownMenuItem
+                    onClick={() => handleUpdateStatus(client.id, "approved")}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Aprovar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleUpdateStatus(client.id, "rejected")}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Rejeitar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleUpdateStatus(client.id, "processing")}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Marcar como Processando
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleUpdateStatus(client.id, "cancelled")}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Cancelar
+                  </DropdownMenuItem>
                 </>
               )}
               {!client.isPaid && (
@@ -486,25 +442,20 @@ export default function ClientsTable({
               {isAdmin && (
                 <>
                   <Select
-                    onValueChange={handleBulkUpdateStatus}
+                    onValueChange={(value) =>
+                      handleBulkUpdateStatus(value as SubmissionClientStatus)
+                    }
                     disabled={isUpdatingStatus}
                   >
                     <SelectTrigger className="w-48">
                       <SelectValue placeholder="Atualizar status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Status pré-pagamento */}
-                      <SelectItem value="pendente">Pendente</SelectItem>
-                      <SelectItem value="processando">Processando</SelectItem>
-                      <SelectItem value="aprovado">Aprovado</SelectItem>
-                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
-
-                      {/* Status pós-pagamento */}
-                      <SelectItem value="deferido">Deferido</SelectItem>
-                      <SelectItem value="indeferido">Indeferido</SelectItem>
-                      <SelectItem value="em_analise">Em Análise</SelectItem>
-                      <SelectItem value="finalizado">Finalizado</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="processing">Processando</SelectItem>
+                      <SelectItem value="approved">Aprovado</SelectItem>
+                      <SelectItem value="rejected">Rejeitado</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
                     </SelectContent>
                   </Select>
                 </>

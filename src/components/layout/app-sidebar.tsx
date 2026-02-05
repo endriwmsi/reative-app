@@ -204,6 +204,11 @@ const data = {
       url: "/acoes-limpa-nome",
       icon: IconTicket,
     },
+    {
+      name: "Gerenciar Clientes",
+      url: "/gerenciar-clientes",
+      icon: IconUsers,
+    },
     // {
     //   name: "Word Assistant",
     //   url: "#",

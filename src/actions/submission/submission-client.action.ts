@@ -6,7 +6,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
-import { submission, submissionClient, user } from "@/db/schema";
+import {
+  type SubmissionClientStatus,
+  submission,
+  submissionClient,
+  user,
+} from "@/db/schema";
 import { updateSubmissionStatus } from "./submission-status.action";
 
 export async function getSubmissionClients(
@@ -154,7 +159,7 @@ export async function deleteSubmissionClient(
 
 export async function updateClientStatus(
   clientId: string,
-  newStatus: string,
+  newStatus: SubmissionClientStatus,
   userId: string,
   isAdmin = false,
 ) {

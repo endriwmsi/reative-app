@@ -46,7 +46,7 @@ type ClientData = {
   submissionId: string;
   name: string;
   document: string;
-  status: string;
+  status: "pending" | "approved" | "rejected" | "processing" | "cancelled";
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;

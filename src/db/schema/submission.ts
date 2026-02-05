@@ -2,6 +2,7 @@ import {
   boolean,
   decimal,
   integer,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -11,6 +12,18 @@ import {
 import { coupon } from "./coupon";
 import { product } from "./product";
 import { user } from "./user";
+
+// Enum para status do cliente de envio
+export const submissionClientStatusEnum = pgEnum("submission_client_status", [
+  "pending",
+  "processing",
+  "approved",
+  "rejected",
+  "cancelled",
+]);
+
+export type SubmissionClientStatus =
+  (typeof submissionClientStatusEnum.enumValues)[number];
 
 export const submission = pgTable("submission", {
   id: text("id").primaryKey().notNull(),
@@ -82,7 +95,7 @@ export const submissionClient = pgTable("submission_client", {
   document: varchar("document", { length: 18 }).notNull(),
 
   // Status do processamento deste cliente específico
-  status: text("status").notNull().default("pending"),
+  status: submissionClientStatusEnum("status").notNull().default("pending"),
 
   // Observações específicas do cliente
   notes: text("notes"),

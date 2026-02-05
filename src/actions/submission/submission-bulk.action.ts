@@ -6,7 +6,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/db/client";
-import { submission, submissionClient } from "@/db/schema";
+import {
+  type SubmissionClientStatus,
+  submission,
+  submissionClient,
+} from "@/db/schema";
 import { updateSubmissionStatus } from "./submission-status.action";
 
 export async function deleteMultipleSubmissions(
@@ -79,7 +83,7 @@ export async function deleteMultipleSubmissions(
 
 export async function updateMultipleClientsStatus(
   clientIds: string[],
-  newStatus: string,
+  newStatus: SubmissionClientStatus,
   userId: string,
   isAdmin = false,
 ) {
