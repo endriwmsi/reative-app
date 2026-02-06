@@ -574,25 +574,6 @@ export default function GestaoDeTrafegoPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* ============ FOOTER ============ */}
-      <footer className="border-t py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Hub LN. Todos os direitos reservados.
-            </p>
-            <div className="flex gap-4">
-              <a
-                href="/termos-e-condicoes"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Termos e Condições
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
