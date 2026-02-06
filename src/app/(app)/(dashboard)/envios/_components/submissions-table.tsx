@@ -238,22 +238,16 @@ export default function SubmissionsTable({
 
   const getStatusLabel = (status: string) => {
     switch (status.toLowerCase()) {
-      case "aguardando":
-        return "Aguardando";
-      case "processando":
+      case "pending":
+        return "Pendente";
+      case "processing":
         return "Processando";
-      case "em_analise_juridica":
-        return "Em Análise Jurídica";
-      case "parcialmente_concluido":
-        return "Parcialmente Aprovado";
-      case "concluido":
+      case "approved":
         return "Aprovado";
-      case "finalizado":
-        return "Finalizado";
-      case "parcialmente_rejeitado":
-        return "Parcialmente Rejeitado";
-      case "rejeitado":
+      case "rejected":
         return "Rejeitado";
+      case "cancelled":
+        return "Cancelado";
       default:
         return status;
     }
@@ -261,24 +255,14 @@ export default function SubmissionsTable({
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "aguardando":
       case "pending":
         return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      case "processando":
       case "processing":
         return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case "em_analise_juridica":
-        return "bg-purple-100 text-purple-800 hover:bg-purple-200";
-      case "parcialmente_concluido":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-      case "concluido":
-      case "completed":
+      case "approved":
         return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "finalizado":
-        return "bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
-      case "parcialmente_rejeitado":
-        return "bg-orange-100 text-orange-800 hover:bg-orange-200";
-      case "rejeitado":
+      case "rejected":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
       case "cancelled":
         return "bg-red-100 text-red-800 hover:bg-red-200";
       default:
@@ -402,17 +386,11 @@ export default function SubmissionsTable({
           column={column}
           title="Status"
           options={[
-            { value: "aguardando", label: "Aguardando" },
-            { value: "processando", label: "Processando" },
-            { value: "em_analise_juridica", label: "Em Análise Jurídica" },
-            { value: "parcialmente_concluido", label: "Parcialmente Aprovado" },
-            { value: "concluido", label: "Aprovado" },
-            { value: "finalizado", label: "Finalizado" },
-            {
-              value: "parcialmente_rejeitado",
-              label: "Parcialmente Rejeitado",
-            },
-            { value: "rejeitado", label: "Rejeitado" },
+            { value: "pending", label: "Pendente" },
+            { value: "processing", label: "Processando" },
+            { value: "approved", label: "Aprovado" },
+            { value: "rejected", label: "Rejeitado" },
+            { value: "cancelled", label: "Cancelado" },
           ]}
           filterType="select"
         />

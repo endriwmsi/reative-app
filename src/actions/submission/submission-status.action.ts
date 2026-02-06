@@ -3,7 +3,6 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import {
-  STATUS_GROUPS,
   SUBMISSION_STATUS,
   type SubmissionStatus,
 } from "@/constants/submission-status";
@@ -13,15 +12,13 @@ import { submission, submissionClient } from "@/db/schema";
 /**
  * LÓGICA DO STATUS DA SUBMISSION:
  *
- * O status da submission reflete o status individual de cada cliente:
+ * O status da submission reflete o status predominante dos clientes:
  *
- * ✅ APROVADO (concluido): Todos os clientes estão aprovados/deferidos
- * ❌ REJEITADO (rejeitado): Todos os clientes estão rejeitados/indeferidos/cancelados
- * ⚠️ PARCIALMENTE APROVADO (parcialmente_concluido): Alguns clientes aprovados, outros pendentes/processando
- * ⚠️ PARCIALMENTE REJEITADO (parcialmente_rejeitado): Alguns clientes rejeitados, outros em diferentes status
- * 🔄 PROCESSANDO/EM ANÁLISE: Clientes sendo processados ou em análise jurídica
- * ⏳ AGUARDANDO: Todos os clientes ainda pendentes
- * ✔️ FINALIZADO: Todos os clientes finalizados (processo concluído)
+ * ✅ Pendente (pending): Maioria dos clientes pendentes
+ * ✅ Processando (processing): Maioria dos clientes processando
+ * ✅ APROVADO (approved): Maioria dos clientes aprovados
+ * ❌ REJEITADO (rejected): Maioria dos clientes rejeitados
+ * ❌ CANCELADO (cancelled): Maioria dos clientes cancelados
  */
 
 export async function calculateSubmissionStatus(
@@ -35,9 +32,10 @@ export async function calculateSubmissionStatus(
     .where(eq(submissionClient.submissionId, submissionId));
 
   if (clientsStatus.length === 0) {
-    return SUBMISSION_STATUS.AGUARDANDO;
+    return SUBMISSION_STATUS.PENDING;
   }
 
+  // Contar quantos clientes têm cada status
   const statusCounts = clientsStatus.reduce(
     (acc, client) => {
       acc[client.status] = (acc[client.status] || 0) + 1;
@@ -48,77 +46,56 @@ export async function calculateSubmissionStatus(
 
   const total = clientsStatus.length;
 
-  // Agrupar status usando as constantes
-  const positives = STATUS_GROUPS.POSITIVE.reduce(
-    (sum, status) => sum + (statusCounts[status] || 0),
-    0,
-  );
-  const negatives = STATUS_GROUPS.NEGATIVE.reduce(
-    (sum, status) => sum + (statusCounts[status] || 0),
-    0,
-  );
-  const completed = STATUS_GROUPS.COMPLETED.reduce(
-    (sum, status) => sum + (statusCounts[status] || 0),
-    0,
-  );
-  const analysis = STATUS_GROUPS.ANALYSIS.reduce(
-    (sum, status) => sum + (statusCounts[status] || 0),
-    0,
-  );
-  const pending = STATUS_GROUPS.PENDING.reduce(
-    (sum, status) => sum + (statusCounts[status] || 0),
-    0,
-  );
+  // Contar por categoria
+  const pending = statusCounts.pending || 0;
+  const processing = statusCounts.processing || 0;
+  const approved = statusCounts.approved || 0;
+  const rejected = statusCounts.rejected || 0;
+  const cancelled = statusCounts.cancelled || 0;
 
-  // REGRA PRINCIPAL: Status da submission reflete o status individual dos clientes
-  // Se todos os clientes estiverem aprovados → submission aprovada
-  // Se todos os clientes estiverem rejeitados → submission rejeitada
-  // Se alguns aprovados e outros não → parcialmente aprovada/rejeitada
+  // REGRA: O status da submission é determinado pela maioria dos clientes
+  // Se todos têm o mesmo status → submission tem esse status
+  // Se há mistura → determinamos pela maioria
 
-  // 1. Todos finalizados - prioridade máxima
-  if (completed === total) {
-    return SUBMISSION_STATUS.FINALIZADO;
+  // 1. Todos aprovados → APPROVED
+  if (approved === total) {
+    return SUBMISSION_STATUS.APPROVED;
   }
 
-  // 2. Todos aprovados (aprovado/deferido) → SUBMISSION APROVADA ✅
-  if (positives === total) {
-    return SUBMISSION_STATUS.CONCLUIDO;
+  // 2. Todos rejeitados → REJECTED
+  if (rejected === total) {
+    return SUBMISSION_STATUS.REJECTED;
   }
 
-  // 3. Todos rejeitados (rejeitado/indeferido/cancelado) → SUBMISSION REJEITADA ❌
-  if (negatives === total) {
-    return SUBMISSION_STATUS.REJEITADO;
+  // 3. Todos cancelados → CANCELLED
+  if (cancelled === total) {
+    return SUBMISSION_STATUS.CANCELLED;
   }
 
-  // 4. Mistura de aprovados e rejeitados → PARCIALMENTE REJEITADA ⚠️
-  if (positives > 0 && negatives > 0) {
-    return SUBMISSION_STATUS.PARCIALMENTE_REJEITADO;
-  }
-
-  // 5. Alguns aprovados, resto pendente/processando → PARCIALMENTE APROVADA ✅
-  if (positives > 0 && positives < total) {
-    return SUBMISSION_STATUS.PARCIALMENTE_CONCLUIDO;
-  }
-
-  // 6. Alguns rejeitados, resto pendente/processando → PARCIALMENTE REJEITADA ❌
-  if (negatives > 0 && negatives < total) {
-    return SUBMISSION_STATUS.PARCIALMENTE_REJEITADO;
-  }
-
-  // 7. Todos pendentes
+  // 4. Todos pendentes → PENDING
   if (pending === total) {
-    return SUBMISSION_STATUS.AGUARDANDO;
+    return SUBMISSION_STATUS.PENDING;
   }
 
-  // 8. Em análise (processando/em_analise)
-  if (analysis > 0) {
-    return statusCounts.em_analise > 0
-      ? SUBMISSION_STATUS.EM_ANALISE_JURIDICA
-      : SUBMISSION_STATUS.PROCESSANDO;
+  // 5. Todos processando → PROCESSING
+  if (processing === total) {
+    return SUBMISSION_STATUS.PROCESSING;
   }
 
-  // Fallback
-  return SUBMISSION_STATUS.AGUARDANDO;
+  // 6. Status misto - determinar pela maioria
+  const statusPriority = [
+    { status: SUBMISSION_STATUS.APPROVED, count: approved },
+    { status: SUBMISSION_STATUS.REJECTED, count: rejected },
+    { status: SUBMISSION_STATUS.CANCELLED, count: cancelled },
+    { status: SUBMISSION_STATUS.PROCESSING, count: processing },
+    { status: SUBMISSION_STATUS.PENDING, count: pending },
+  ];
+
+  // Ordenar por quantidade (maior primeiro)
+  statusPriority.sort((a, b) => b.count - a.count);
+
+  // Retorna o status com maior contagem
+  return statusPriority[0].status;
 }
 
 export async function updateSubmissionStatus(

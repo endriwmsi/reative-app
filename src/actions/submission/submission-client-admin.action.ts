@@ -75,7 +75,21 @@ export async function getAllSubmissionClients(
     }
 
     if (document && document.trim()) {
-      conditions.push(ilike(submissionClient.document, `%${document.trim()}%`));
+      // Suporte para múltiplos documentos separados por espaço
+      const documents = document
+        .trim()
+        .split(/\s+/)
+        .filter((d) => d.length > 0);
+
+      if (documents.length === 1) {
+        conditions.push(ilike(submissionClient.document, `%${documents[0]}%`));
+      } else if (documents.length > 1) {
+        // Usar OR para buscar todos os documentos
+        const documentConditions = documents.map((doc) =>
+          ilike(submissionClient.document, `%${doc}%`),
+        );
+        conditions.push(sql`(${sql.join(documentConditions, sql` OR `)})`);
+      }
     }
 
     if (status) {

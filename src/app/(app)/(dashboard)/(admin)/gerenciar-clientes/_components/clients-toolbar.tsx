@@ -1,7 +1,8 @@
 "use client";
 
 import { Loader2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDebouncedCallback } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pendente" },
@@ -48,16 +50,22 @@ export function ClientsToolbar({
 }: ClientsToolbarProps) {
   // Estados locais para inputs com debounce
   const [localName, setLocalName] = useState(name);
-  const [localDocument, setLocalDocument] = useState(document);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Parse documents from the prop string
+  const documentTags = useMemo(() => {
+    if (!document || !document.trim()) return [];
+    return document
+      .trim()
+      .split(/\s+/)
+      .filter((d) => d.length > 0);
+  }, [document]);
 
   // Sincronizar com props
   useEffect(() => {
     setLocalName(name);
   }, [name]);
-
-  useEffect(() => {
-    setLocalDocument(document);
-  }, [document]);
 
   // Debounced handlers
   const debouncedNameChange = useDebouncedCallback((value: string) => {
@@ -73,9 +81,47 @@ export function ClientsToolbar({
     debouncedNameChange(value);
   };
 
-  const handleDocumentChange = (value: string) => {
-    setLocalDocument(value);
-    debouncedDocumentChange(value);
+  const handleDocumentInputChange = (value: string) => {
+    // Check if user added a space (indicating they want to add a tag)
+    if (value.endsWith(" ") && value.trim()) {
+      const newDoc = value.trim();
+      if (newDoc && !documentTags.includes(newDoc)) {
+        const newDocuments = [...documentTags, newDoc].join(" ");
+        debouncedDocumentChange(newDocuments);
+      }
+      setInputValue("");
+    } else {
+      setInputValue(value);
+    }
+  };
+
+  const handleDocumentInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Enter" && inputValue.trim()) {
+      e.preventDefault();
+      const newDoc = inputValue.trim();
+      if (!documentTags.includes(newDoc)) {
+        const newDocuments = [...documentTags, newDoc].join(" ");
+        debouncedDocumentChange(newDocuments);
+      }
+      setInputValue("");
+    } else if (
+      e.key === "Backspace" &&
+      !inputValue &&
+      documentTags.length > 0
+    ) {
+      // Remove last tag when pressing backspace on empty input
+      const newDocuments = documentTags.slice(0, -1).join(" ");
+      debouncedDocumentChange(newDocuments);
+    }
+  };
+
+  const removeDocumentTag = (docToRemove: string) => {
+    const newDocuments = documentTags
+      .filter((doc) => doc !== docToRemove)
+      .join(" ");
+    debouncedDocumentChange(newDocuments);
   };
 
   const hasFilters = name || document || status;
@@ -89,12 +135,50 @@ export function ClientsToolbar({
           onChange={(e) => handleNameChange(e.target.value)}
           className="h-9 w-full sm:w-[200px]"
         />
-        <Input
-          placeholder="Buscar por documento..."
-          value={localDocument}
-          onChange={(e) => handleDocumentChange(e.target.value)}
-          className="h-9 w-full sm:w-[180px]"
-        />
+
+        {/* Document Tags Input */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Custom tag input container with real input inside */}
+        <div
+          className={cn(
+            "flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background",
+            "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+            "sm:w-[280px] cursor-text",
+          )}
+          onClick={() => inputRef.current?.focus()}
+          onKeyDown={() => inputRef.current?.focus()}
+        >
+          {documentTags.map((doc) => (
+            <Badge
+              key={doc}
+              variant="secondary"
+              className="gap-1 px-2 py-0.5 text-xs font-normal"
+            >
+              {doc}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeDocumentTag(doc);
+                }}
+                className="ml-0.5 rounded-full hover:bg-muted-foreground/20"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => handleDocumentInputChange(e.target.value)}
+            onKeyDown={handleDocumentInputKeyDown}
+            placeholder={
+              documentTags.length === 0 ? "Digite documentos..." : ""
+            }
+            className="min-w-[80px] flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+
         <Select
           value={status || "all"}
           onValueChange={(value) =>
