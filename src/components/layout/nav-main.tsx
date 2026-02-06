@@ -2,6 +2,7 @@
 
 import { type Icon, IconChevronRight } from "@tabler/icons-react";
 import { motion, type Variants } from "framer-motion";
+import { Megaphone } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -220,6 +221,25 @@ export function NavMain({
                 </SidebarMenuItem>
               </motion.div>
             ))}
+            <SidebarMenuItem>
+              <motion.div
+                variants={hoverVariants}
+                initial="initial"
+                whileHover="hover"
+              >
+                <SidebarMenuButton asChild>
+                  <Link
+                    href="/gestor-de-trafego"
+                    className={cn(
+                      "w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md transition-all border border-indigo-500/20 bg-indigo-500/5 text-indigo-600 hover:bg-indigo-500/10 hover:border-indigo-500/40 dark:text-indigo-400 dark:border-indigo-500/30",
+                    )}
+                  >
+                    <Megaphone />
+                    <span>Gestor de Trafego</span>
+                  </Link>
+                </SidebarMenuButton>
+              </motion.div>
+            </SidebarMenuItem>
           </SidebarMenu>
         </motion.div>
       </SidebarGroupContent>
